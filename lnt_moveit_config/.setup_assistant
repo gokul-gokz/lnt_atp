@@ -1,0 +1,10 @@
+moveit_setup_assistant_config:
+  URDF:
+    package: lnt_urdf_description
+    relative_path: urdf/lnt_urdf_description.urdf
+  SRDF:
+    relative_path: config/lnt_urdf_description.srdf
+  CONFIG:
+    author_name: ajay
+    author_email: ajayguhan@gmail.com
+    generated_timestamp: 1506342304
