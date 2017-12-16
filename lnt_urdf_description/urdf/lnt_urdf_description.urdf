@@ -504,4 +504,41 @@
       effort="0"
       velocity="0" />
   </joint>
+
+  <!--This is a fake joint to interpret as tool frame-->
+
+   <joint name="lnt_gripper_tool_frame_joint" type="fixed">
+    <parent link="link_6"/>
+    <child link="lnt_gripper_tool_frame" />
+    <origin xyz="0 0 0.07" rpy="0 0 0"/>
+  </joint>
+
+ 
+  <link name="lnt_gripper_tool_frame">
+
+    <!-- This is the coordinate system of the end effector (this is the position
+         used in IK); there is no actual arm part attached to this link -->
+
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0.07"/>
+      <geometry>
+        <box size="0.005 0.005 0.005"/>
+      </geometry>
+      <material name="grey" />
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="0 0 0.07"/>
+      <geometry>
+        <box size="0.01 0.01 0.01"/>
+      </geometry>
+      <material name="grey" />
+    </collision>
+    <inertial>
+      <mass value="0.0012" />
+      <origin xyz="0 0 0"/>
+      <inertia ixx="2e-8" ixy="0.0" ixz="0.0"
+        iyy="2e-8" iyz="0.0"
+        izz="2e-8" />
+    </inertial>
+</link>
 </robot>
