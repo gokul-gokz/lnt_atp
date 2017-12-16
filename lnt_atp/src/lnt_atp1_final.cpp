@@ -325,7 +325,7 @@ int main(int argc, char **argv)
 		{
 	   //Planning with orientation Constraints
         moveit_msgs::OrientationConstraint ocm;
-		ocm.link_name = "link_6";
+		ocm.link_name = "lnt_gripper_tool_frame";
 		ocm.header.frame_id = "base_link";
 		ocm.orientation.x =  start_pose.orientation.x;
         ocm.orientation.y = start_pose.orientation.y;
@@ -473,7 +473,7 @@ int main(int argc, char **argv)
 	     		  
 		  //Set Position constraints
 		  moveit_msgs::PositionConstraint pcm;
-	      pcm.link_name = "link_6";
+	      pcm.link_name = "lnt_gripper_tool_frame";
 	      pcm.header.frame_id = "base_link";
           pcm.target_point_offset.x = start_pose.position.x;
 	      pcm.target_point_offset.y =  start_pose.position.y;
