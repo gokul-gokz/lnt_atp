@@ -291,7 +291,7 @@
     <visual>
       <origin
         xyz="0 0 0"
-        rpy="0 0 0" />
+        rpy="3.14 0 0" />
       <geometry>
         <mesh
           filename="package://lnt_urdf_description/meshes/link_5.STL" />
