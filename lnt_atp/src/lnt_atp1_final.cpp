@@ -86,8 +86,8 @@ bool subscriber_check =false;
 
 
 //variable for storing safety limits for each joints
-double max[6] = {3.14,0,3.14,2.09,1.57,3.14};
-double min[6] = {-3.14,-3.14,0,-2.09,-1.57,-3.14};
+double max[6] = {3.14,3.14,0,2.09,1.57,3.14};
+double min[6] = {-3.14,0,-3.14,-2.09,-1.57,-3.14};
 
 //Safety limit check function
 bool safety_check(int joint, double position)

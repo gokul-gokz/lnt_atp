@@ -28,8 +28,8 @@ int main(int argc, char **argv)
      * This is the packet data message. You stuff it with data, and then publish it.
      */
     lnt_packet::lnt_packet msg;
-	msg.packet_code=1;
-	msg.values={0.1,0.01,0.11,-0.0,-0.1,0.0};
+	msg.packet_code=6;
+	msg.values={0,45,-65,0.0,-20,0.0};
 	msg.eff_mode=2;
 
     packet_pub.publish(msg);
