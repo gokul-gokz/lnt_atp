@@ -84,6 +84,9 @@ int joint_num;
 //Check variable for subscriber callback 
 bool subscriber_check =false;
 
+//variable to check the theta state in cylidrical goal and other states
+bool flag=1;
+
 
 //variable for storing safety limits for each joints
 double max[6] = {3.14,3.14,0,2.09,1.57,3.14};
@@ -293,14 +296,67 @@ int main(int argc, char **argv)
   else if(packet == 1 || packet == 2)
   { 
      
-	if(packet == 2)
+     // Cylindrical control and only change in theta direction
+	 if(packet == 2 && theta != 0 && r == 0 && z==0)
+	 {
+		std::cout<<"Entering cylindrical mode";
+		 //Radians Conversion
+	  position = (theta *3.14)/180;
+	  
+	  //Check safety limits and execute
+	 if(safety_check(0,position))  
+     {
+      //Create a robotstate object and store the current state information(position/accleration/velocity)
+      moveit::core::RobotStatePtr current_state = move_group.getCurrentState();
+  
+      // Next get the current set of joint values for the group.
+      std::vector<double> joint_group_positions;
+      current_state->copyJointGroupPositions(joint_model_group, joint_group_positions);
+
+      // Modify the joint state accordingly
+      joint_group_positions[joint_num] = position;  // radians
+      move_group.setJointValueTarget(joint_group_positions);
+      moveit::planning_interface::MoveGroupInterface::Plan my_plan;
+      success = move_group.plan(my_plan);
+      ROS_INFO_NAMED("Executing cylindrical space goal %s", success ? "" : "FAILED");
+
+      // Visualize the plan in Rviz
+      visual_tools.deleteAllMarkers();
+      visual_tools.publishText(text_pose, "Cylindrical space Goal", rvt::WHITE, rvt::XLARGE);
+      visual_tools.publishTrajectoryLine(my_plan.trajectory_, joint_model_group);
+      visual_tools.trigger();
+	  
+	  //Execute in real hardware
+	  move_group.move(); 
+	  //Mark the end of execution
+      subscriber_check = false;
+      continuous_command =true;
+      flag =0;
+      
+	 }
+	 else
+	 {
+		 std::cout<<"Value:Out of range";	
+		 flag = 0;
+		 
+    }
+   }
+	if(packet == 2 && !(theta != 0 && r == 0 && z==0))
 	{
       	  //Cylindrical to cartesian conversion
 		  x= r*cos(theta);
 	      y= r*sin(theta);
 	      mode = 1;
+	      flag == 1;
 	   }
-		
+	 
+	 if (packet ==1)
+	 {
+		 flag=1;
+	 }
+	 
+	if(flag = 1)
+	{	
 	// Assigning the current position as start position
     geometry_msgs::Pose start_pose;
     
@@ -518,6 +574,8 @@ int main(int argc, char **argv)
 		default:
 		  std::cout<<"Invalid input";
 	  }  
+	 }
+	
 	}
 	else
 	  std::cout<<"Invalid Input";
