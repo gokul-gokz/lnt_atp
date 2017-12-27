@@ -53,6 +53,7 @@
 
 //Standard header files
 #include <stdio.h>
+#include <math.h>
 #include <sensor_msgs/JointState.h>
 #include <std_msgs/Float64.h>
 #include <ros/ros.h>
@@ -163,9 +164,7 @@ int main(int argc, char **argv)
   //Subscriber for packet data
   ros::Subscriber sub1 = node_handle.subscribe("lnt_packet_data", 1000, packet_data_Callback);
   
-   
-  
-  
+    
   
    
   //spinner thread for subscribers
@@ -181,6 +180,12 @@ int main(int argc, char **argv)
   // Raw pointers are frequently used to refer to the planning group for improved performance.
   const robot_state::JointModelGroup *joint_model_group =
   move_group.getCurrentState()->getJointModelGroup(PLANNING_GROUP);
+
+
+  //Test code
+  
+  
+	
   
   // Visualization
   // ^^^^^^^^^^^^^
@@ -295,26 +300,41 @@ int main(int argc, char **argv)
    
   else if(packet == 1 || packet == 2)
   { 
-     
-     // Cylindrical control and only change in theta direction
+      
+	  	  
+	  // Case:1 Cylindrical control mode -only changing theta
 	 if(packet == 2 && theta != 0 && r == 0 && z==0)
 	 {
-		std::cout<<"Entering cylindrical mode";
-		 //Radians Conversion
-	  position = (theta *3.14)/180;
-	  
-	  //Check safety limits and execute
-	 if(safety_check(0,position))  
-     {
-      //Create a robotstate object and store the current state information(position/accleration/velocity)
+		 
+	  //Create a robotstate object and store the current state information(position/accleration/velocity)
       moveit::core::RobotStatePtr current_state = move_group.getCurrentState();
   
       // Next get the current set of joint values for the group.
       std::vector<double> joint_group_positions;
       current_state->copyJointGroupPositions(joint_model_group, joint_group_positions);
-
+      
+      //Finding the current position(angle) of base joint and incrementing it with theta provided
+	  //Radians Conversion
+	  position = (theta *3.14)/180 +  joint_group_positions[0];
+	  
+	  std::cout<<"position"<<position;
+	  
+	  //Checking the limits
+	  if(position>3.14)
+	  {
+		  position = -(6.28-position);
+	  }
+	  else if(position<-3.14)
+	  {
+		  position = 6.28 + position;
+	  }
+	 std::cout<<"Entering cylindrical mode-theta change";
+	 //Check safety limits and execute
+	 if(safety_check(0,position))  
+     {
+     
       // Modify the joint state accordingly
-      joint_group_positions[joint_num] = position;  // radians
+      joint_group_positions[0] = position;  // radians
       move_group.setJointValueTarget(joint_group_positions);
       moveit::planning_interface::MoveGroupInterface::Plan my_plan;
       success = move_group.plan(my_plan);
@@ -341,11 +361,51 @@ int main(int argc, char **argv)
 		 
     }
    }
-	if(packet == 2 && !(theta != 0 && r == 0 && z==0))
+   
+    //Case 2- cylindrical mode ,changing multiple values
+	if(packet == 2 && (((theta == 0 && r != 0 || z!=0))||flag==1))
 	{
+		 //Create a robotstate object and store the current state information(position/accleration/velocity)
+      moveit::core::RobotStatePtr current_state = move_group.getCurrentState();
+  
+      // Next get the current set of joint values for the group.
+      std::vector<double> joint_group_positions;
+      current_state->copyJointGroupPositions(joint_model_group, joint_group_positions);
+      
+      //Finding the current position(angle) of base joint and incrementing it with theta provided
+	  //Radians Conversion
+	  position = (theta *3.14)/180 +  joint_group_positions[0];
+	  
+	  std::cout<<"position"<<position;
+	  
+	  //Checking the limits
+	  if(position>3.14)
+	  {
+		  position = -(6.28-position);
+	  }
+	  else if(position<-3.14)
+	  {
+		  position = 6.28 + position;
+	  }
+		 
+		 
+		 //For calculation of initial extension of the arm 'R'
+		  float x1,y1,R;
+   		  geometry_msgs::PoseStamped current_pose = move_group.getCurrentPose();
+   		  x1 = current_pose.pose.position.x;
+   		  y1 = current_pose.pose.position.y;
+   		  R = sqrt(pow(x1,2)+pow(y1,2));
+   		  //Adding the initial extension of the arm with required additional movement
+   		  R = R+r;
+   		  std::cout<<"x1="<<x1;
+   		  std::cout<<"y1="<<y1;
+   		  std::cout<<"R="<<R;
+   		  
       	  //Cylindrical to cartesian conversion
-		  x= r*cos(theta);
-	      y= r*sin(theta);
+		  x= R*cos(position);
+		  std::cout<<"x="<<x;
+		  y= R*sin(position);
+		  std::cout<<"y="<<y;
 	      mode = 1;
 	      flag == 1;
 	   }
@@ -369,6 +429,7 @@ int main(int argc, char **argv)
     start_pose.orientation.y = current_pose.pose.orientation.y;
     start_pose.orientation.z = current_pose.pose.orientation.z;
     start_pose.orientation.w = current_pose.pose.orientation.w;
+       
     
     //Create a plan object
     moveit::planning_interface::MoveGroupInterface::Plan my_plan;
@@ -402,8 +463,16 @@ int main(int argc, char **argv)
 	    //move_group.setStartState(start_state);
      
 		geometry_msgs::Pose target_pose;
-		target_pose.position.x = start_pose.position.x+x;
-		target_pose.position.y = start_pose.position.y+y;
+		if(packet == 2)
+		{
+		 target_pose.position.x = x;
+		 target_pose.position.y = y;
+	    }
+	    else
+	    {
+			target_pose.position.x =   start_pose.position.x+x; 
+			target_pose.position.y =   start_pose.position.y+y; 
+		}
 		target_pose.position.z =   start_pose.position.z+z; 
 		target_pose.orientation.x =  start_pose.orientation.x;
         target_pose.orientation.y = start_pose.orientation.y;
@@ -558,7 +627,7 @@ int main(int argc, char **argv)
 		  move_group.setPlanningTime(5.0);
    
 		  //planning to the corresponding setpose target
-		   success = move_group.plan(my_plan);
+		  success = move_group.plan(my_plan);
      
 		  ROS_INFO_NAMED("Visualizing plan 1 (pose constrained goal) %s", success ? "" : "FAILED");
 
@@ -579,8 +648,8 @@ int main(int argc, char **argv)
 	}
 	else
 	  std::cout<<"Invalid Input";
-
 }
+
 }
   ros::shutdown();
   return 0;
