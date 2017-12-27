@@ -2,17 +2,29 @@ Steps to execute the code:
 
 1. Create a catkin workspace.
 2. Copy all the packages into src folder of the workspace.
-3. Then enter 'catkin_make' command.
-4. Check whether making of the packages are 100% completed.
-5. Then enter the command 'roslaunch lnt_moveit_config demo.launch'.
-6. An RViz window will open with lnt manipulator.
-7. Then enter the command 'rosrun lnt_atp lnt_atp1' in another terminal.
-8. Then open the RViz window and click 'Add' in the Displays tab. A dialog Box will open.
-9. Select Marker array and press ok.
-10. Select the marker array column in displays tab and choose the topic as /rviz_visual_tools
-11. Then open another terminal.
-12. Enter the command 'rosrun lnt_packet lnt_publisher'. This will execute the cpp file where packet data is hardcoded.
-13 Another way to send packet data ,open a terminal and enter 
+3. Install the dependencies by running the following commands in the terminal:
+
+  sudo apt-get install ros-kinetic-urdfdom-py
+  sudo apt-get install ros-kinetic-moveit-msgs
+  sudo apt-get install ros-kinetic-ompl
+  sudo apt-get install ros-kinetic-warehouse-ros
+  sudo apt-get install ros-kinetic-controller-manager-msgs
+  sudo apt-get install ros-kinetic-rviz-visual-tools
+  sudo apt-get install ros-kinetic-trac-ik-kinematics-plugin
+
+
+4. Then enter 'catkin_make' command.
+5. Check whether making of the packages are 100% completed.
+6. Then enter the command 'roslaunch lnt_moveit_config demo.launch'.
+7. An RViz window will open with lnt manipulator.
+8. Then enter the command 'rosrun lnt_atp lnt_atp1' in another terminal.
+9. Then open the RViz window and click 'Add' in the Displays tab. A dialog Box will open.
+10. Select Marker array and press ok.
+11. Select the marker array column in displays tab and choose the topic as /rviz_visual_tools.
+12. Then again press 'Add' in the Displays tab. In the upcoming dialog box, choose 'Axes' and press ok. 
+13. Then open another terminal.
+14. Enter the command 'rosrun lnt_packet lnt_publisher'. This will execute the cpp file where packet data is hardcoded. But whenever you change some value in the cpp file,you need to run the 'catkin_make' command in the workspace directory.
+15. Another way to send packet data ,open a terminal and enter 
    rostopic pub /lnt_packet_data lnt_packet/lnt_packet "packet_code: 5
    values: [0, 40.0, 0.0, 0.0, 0.0, 0.0]
    eff_mode: 0" 
@@ -20,8 +32,10 @@ Steps to execute the code:
 Test1: Individual position control mode
 Example:
 rostopic pub /lnt_packet_data lnt_packet/lnt_packet "packet_code: 5
-   values: [0, 40.0, 0.0, 0.0, 0.0, 0.0]
+   values: [2, 40.0, 0.0, 0.0, 0.0, 0.0]
    eff_mode: 0" 
+
+Note: Joint number[0-5] should be specified as first element and the angle should be specified as second element and the remaining elements in the array should be left as zero.
 
 
 Test2: Multiple joint control mode
@@ -66,8 +80,6 @@ rostopic pub /lnt_packet_data lnt_packet/lnt_packet "packet_code: 2
 Note1:These values can also be set in the executuble file'lnt_publisher' and executed. The packets will be published continuously for every 100msec and the motion will be continuous. To stop publishing the packets, the node should be terminated(ctrl+c).
 
 Note2: The arm should be set to some start pose using RVIZ terminal first and then the corresponding packets should be published because at the home position the link1 of arm is resting on a mechanical lock.*(For tests 3-6)
-
-Note3: The camera is facing down in this current URDF which will be fixed in the new URDF(after the gripper design change and base link change). So there might be small inconsistency during execution because of that.
 
 
 

@@ -243,7 +243,7 @@ int main(int argc, char **argv)
 	  move_group.move(); 
 	  //Mark the end of execution
       subscriber_check = false;
-      continuous_command =false;
+      continuous_command =true;
 	 }
 	 else
 	 {
@@ -295,13 +295,13 @@ int main(int argc, char **argv)
 	  
 	  //Mark the end of execution
       subscriber_check = false; 
-      continuous_command = false; 
+      continuous_command = true; 
 	  }
    
   else if(packet == 1 || packet == 2)
   { 
-      
-	  	  
+      //Global variable 'packet' suddenly becomes zero inbetween,reason need to be findout,so creating a temporary variable
+	  int packet1=packet;	  
 	  // Case:1 Cylindrical control mode -only changing theta
 	 if(packet == 2 && theta != 0 && r == 0 && z==0)
 	 {
@@ -365,16 +365,26 @@ int main(int argc, char **argv)
     //Case 2- cylindrical mode ,changing multiple values
 	if(packet == 2 && (((theta == 0 && r != 0 || z!=0))||flag==1))
 	{
-		 //Create a robotstate object and store the current state information(position/accleration/velocity)
-      moveit::core::RobotStatePtr current_state = move_group.getCurrentState();
-  
-      // Next get the current set of joint values for the group.
-      std::vector<double> joint_group_positions;
-      current_state->copyJointGroupPositions(joint_model_group, joint_group_positions);
-      
-      //Finding the current position(angle) of base joint and incrementing it with theta provided
-	  //Radians Conversion
-	  position = (theta *3.14)/180 +  joint_group_positions[0];
+		
+	  
+	  //For calculation of initial extension of the arm 'R'
+		  float x1,y1,R;
+   		  geometry_msgs::PoseStamped current_pose = move_group.getCurrentPose();
+   		  x1 = current_pose.pose.position.x;
+   		  y1 = current_pose.pose.position.y;
+   		  R = sqrt(pow(x1,2)+pow(y1,2));
+   		  //Adding the initial extension of the arm with required additional movement
+   		  R = R+r;
+   		  std::cout<<"x1="<<x1;
+   		  std::cout<<"y1="<<y1;
+   		  std::cout<<"R="<<R;
+   		  
+     //For calculation of initial theta of end effector
+      float theta1;
+      theta1 = atan(y1/x1);
+      std::cout<<"theta1"<<theta1;
+   		  
+	  position = (theta *3.14)/180 +  theta1;
 	  
 	  std::cout<<"position"<<position;
 	  
@@ -389,17 +399,7 @@ int main(int argc, char **argv)
 	  }
 		 
 		 
-		 //For calculation of initial extension of the arm 'R'
-		  float x1,y1,R;
-   		  geometry_msgs::PoseStamped current_pose = move_group.getCurrentPose();
-   		  x1 = current_pose.pose.position.x;
-   		  y1 = current_pose.pose.position.y;
-   		  R = sqrt(pow(x1,2)+pow(y1,2));
-   		  //Adding the initial extension of the arm with required additional movement
-   		  R = R+r;
-   		  std::cout<<"x1="<<x1;
-   		  std::cout<<"y1="<<y1;
-   		  std::cout<<"R="<<R;
+		 
    		  
       	  //Cylindrical to cartesian conversion
 		  x= R*cos(position);
@@ -409,8 +409,10 @@ int main(int argc, char **argv)
 	      mode = 1;
 	      flag == 1;
 	   }
+	   
+	 std::cout<<"packet1"<<packet1;
 	 
-	 if (packet ==1)
+	 if (packet1 ==1)
 	 {
 		 flag=1;
 	 }
@@ -463,7 +465,8 @@ int main(int argc, char **argv)
 	    //move_group.setStartState(start_state);
      
 		geometry_msgs::Pose target_pose;
-		if(packet == 2)
+		
+		if(packet1 == 2)
 		{
 		 target_pose.position.x = x;
 		 target_pose.position.y = y;
@@ -473,6 +476,11 @@ int main(int argc, char **argv)
 			target_pose.position.x =   start_pose.position.x+x; 
 			target_pose.position.y =   start_pose.position.y+y; 
 		}
+		
+		std::cout<<"target_pose.position.x"<<target_pose.position.x;
+		std::cout<<"target_pose.position.y"<<target_pose.position.y;
+		
+		
 		target_pose.position.z =   start_pose.position.z+z; 
 		target_pose.orientation.x =  start_pose.orientation.x;
         target_pose.orientation.y = start_pose.orientation.y;
@@ -548,7 +556,7 @@ int main(int argc, char **argv)
 		  moveit::planning_interface::MoveGroupInterface::Plan my_plan;
 		  
 		  move_group.setPoseTarget(target_pose);
-		  move_group.setPlanningTime(2.0);
+		  move_group.setPlanningTime(5.0);
    
 		  //planning to the corresponding setpose target
 		   success = move_group.plan(my_plan);
