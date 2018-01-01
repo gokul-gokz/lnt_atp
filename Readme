@@ -17,7 +17,7 @@ Steps to execute the code:
 5. Check whether making of the packages are 100% completed.
 6. Then enter the command 'roslaunch lnt_moveit_config demo.launch'.
 7. An RViz window will open with lnt manipulator.
-8. Then enter the command 'rosrun lnt_atp lnt_atp1' in another terminal.
+8. Then enter the command 'rosrun lnt_atp lnt_atp1' in another terminal. The manipulator will move to the predefined start position [ 0  45   -65  0  -20  0].
 9. Then open the RViz window and click 'Add' in the Displays tab. A dialog Box will open.
 10. Select Marker array and press ok.
 11. Select the marker array column in displays tab and choose the topic as /rviz_visual_tools.
@@ -79,7 +79,7 @@ rostopic pub /lnt_packet_data lnt_packet/lnt_packet "packet_code: 2
 
 Note1:These values can also be set in the executuble file'lnt_publisher' and executed. The packets will be published continuously for every 100msec and the motion will be continuous. To stop publishing the packets, the node should be terminated(ctrl+c).
 
-Note2: The arm should be set to some start pose using RVIZ terminal first and then the corresponding packets should be published because at the home position the link1 of arm is resting on a mechanical lock.*(For tests 3-6)
+
 
 
 
