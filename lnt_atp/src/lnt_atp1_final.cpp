@@ -182,8 +182,6 @@ int main(int argc, char **argv)
   move_group.getCurrentState()->getJointModelGroup(PLANNING_GROUP);
 
 
-  //Test code
-  
   
 	
   
@@ -205,6 +203,32 @@ int main(int argc, char **argv)
     
   bool success = true;
   bool continuous_command = true;
+  
+  //Sending the robot to the predefined position 
+  //Create a robotstate object and store the current state information(position/accleration/velocity)
+  moveit::core::RobotStatePtr current_state = move_group.getCurrentState();
+  
+  //Initialize the values for joints
+  std::vector<double> joint_group_positions = {0,0.7853,-1.1344,0,-0.3490,0};   //[0,45,-65,0,-20,0] 
+  
+  //Assign and execute  
+  move_group.setJointValueTarget(joint_group_positions);
+  moveit::planning_interface::MoveGroupInterface::Plan my_plan;
+  success = move_group.plan(my_plan);
+  ROS_INFO_NAMED("Moving to predefined position %s", success ? "" : "FAILED");
+  
+  // Visualize the plan in Rviz
+  visual_tools.deleteAllMarkers();
+  visual_tools.publishText(text_pose, " Predefined position", rvt::WHITE, rvt::XLARGE);
+  visual_tools.publishTrajectoryLine(my_plan.trajectory_, joint_model_group);
+  visual_tools.trigger();
+	  
+  //Execute in real hardware
+  move_group.move();
+    
+  
+  //Code for executing the packet data
+  
   while(ros::ok())
   { 
   if(subscriber_check && continuous_command && success )
@@ -397,10 +421,7 @@ int main(int argc, char **argv)
 	  {
 		  position = 6.28 + position;
 	  }
-		 
-		 
-		 
-   		  
+		    		  
       	  //Cylindrical to cartesian conversion
 		  x= R*cos(position);
 		  std::cout<<"x="<<x;
