@@ -23,61 +23,77 @@ Steps to execute the code:
 11. Select the marker array column in displays tab and choose the topic as /rviz_visual_tools.
 12. Then again press 'Add' in the Displays tab. In the upcoming dialog box, choose 'Axes' and press ok. 
 13. Then open another terminal.
-14. Enter the command 'rosrun lnt_packet lnt_publisher'. This will execute the cpp file where packet data is hardcoded. But whenever you change some value in the cpp file,you need to run the 'catkin_make' command in the workspace directory.
+14. Enter the command 'rosrun lnt_packet lnt_publisher'. This will execute the cpp file where packet data is hardcoded. But whenever you change some value in the cpp file,you need to run the 'catkin_make' command in the workspace directory and you need to source the directory 'source ./devel/setup.bash'.
 15. Another way to send packet data ,open a terminal and enter 
-   rostopic pub /lnt_packet_data lnt_packet/lnt_packet "packet_code: 5
-   values: [0, 40.0, 0.0, 0.0, 0.0, 0.0]
-   eff_mode: 0" 
+
+rostopic pub /lnt_packet_data lnt_packet/lnt_packet "packet_code: 5
+values: [2, -40.0, 0.0, 0.0, 0.0, 0.0]
+eff_mode: 0" 
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 Test1: Individual position control mode
 Example:
 rostopic pub /lnt_packet_data lnt_packet/lnt_packet "packet_code: 5
-   values: [2, 40.0, 0.0, 0.0, 0.0, 0.0]
-   eff_mode: 0" 
+values: [2, -20.0, 0.0, 0.0, 0.0, 0.0]
+eff_mode: 0" 
 
-Note: Joint number[0-5] should be specified as first element and the angle should be specified as second element and the remaining elements in the array should be left as zero.
+Note1; In the above packet data, the first element in the values array is joint number which is 2 and the the second element is the angle which is -40 degree. And the remaining elements in the packet data should be set to zero including the eff_mode.
 
+Note2: Joint numbers
+	Base actuator     -0
+	Shoulder actuator -1
+	Elbow actuator    -2
+	Roll actuator	  -3
+ 	Pitch actuator    -4
+	Roll actuator     -5
 
 Test2: Multiple joint control mode
 Example:
 rostopic pub /lnt_packet_data lnt_packet/lnt_packet "packet_code: 6
-   values: [60, -40.0, 90.0, 40.0, 25.0, 65.0]
-   eff_mode: 0" 
+values: [60, 40.0, -90.0, 40.0, 25.0, 65.0]
+eff_mode: 0" 
 
+Note1: In this mode, the values for each joint[0-5] can be given in values array position [0-5] in the packet data accordingly.
 
+Note 2: The values must be specified in degrees.
 
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Note: For tests [3-5], the first three elements of the values array in the packet data are the x,y,z incremental position values(metres) respectively. And the last three elements are the x,y,z incremental orientation values(radians) respectively.
+ 
 Test3: Unconstrained cartesian control mode
 Example:
 rostopic pub /lnt_packet_data lnt_packet/lnt_packet "packet_code: 1
-   values: [0.2, 0.1, 0.1, 0.15, 0.22, 0.17]
-   eff_mode: 0" 
+values: [0.2, 0.1, 0.1, 0.15, 0.22, 0.17]
+eff_mode: 0" 
 
 
-
-
-Test4: Orientation constraint cartesian space
+Test4: Orientation constraint cartesian space control mode
 Example:
 rostopic pub /lnt_packet_data lnt_packet/lnt_packet "packet_code: 1
-   values: [0.01, -0.1, 0.2, 0.0 0.0, 0.0]
-   eff_mode: 1" 
+values: [0.1, -0.1, 0.1, 0.0, 0.0, 0.0]
+eff_mode: 1" 
 
 
 
-Test5: Position constraint cartesian space
+Test5: Position constraint cartesian space control mode
 Example:
 rostopic pub /lnt_packet_data lnt_packet/lnt_packet "packet_code: 1
-   values: [0, 0, 0, 0.15, 0.12, 0.0]
-   eff_mode: 2" 
+values: [0, 0, 0, 0.15, 0.12, 0.0]
+eff_mode: 2" 
 
 
 
 Test6: Cylindrical space control
 Example:
 rostopic pub /lnt_packet_data lnt_packet/lnt_packet "packet_code: 2
-   values: [0.1, 0.2, 0.3, 0.0, 0.0, 0.0]
-   eff_mode: 0" 
+values: [0.1, 0.0, 0.1, 0.0, 0.0, 0.0]
+eff_mode: 0" 
 
-Note1:These values can also be set in the executuble file'lnt_publisher' and executed. The packets will be published continuously for every 100msec and the motion will be continuous. To stop publishing the packets, the node should be terminated(ctrl+c).
+Note:In the packet data of cylindrical space control mode, only first three elements of the values array is used. The first element is 'r'(metres), the second element is 'pi' which should be specified in degrees and the third element is 'z'(metres)
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Note:These packet data values can also be set in the executuble file named 'lnt_publisher' inside lnt_packet package and executed. The packets will be published continuously for every 100msec and the motion will be continuous. To stop publishing the packets, the node should be terminated(ctrl+c).
 
 
 
