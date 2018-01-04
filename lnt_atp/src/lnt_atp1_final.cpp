@@ -231,7 +231,7 @@ int main(int argc, char **argv)
   
   while(ros::ok())
   { 
-  if(subscriber_check && continuous_command && success )
+  if(subscriber_check && continuous_command && 1 )
   {  
   //Packet data:5 - Publishing individual joint commands
   if(packet == 5)
