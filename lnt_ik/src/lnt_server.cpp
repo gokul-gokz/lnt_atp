@@ -57,6 +57,9 @@ class lnt_control
   	
 
  public:
+ 
+    double home_pos[6] = {0,45,-65,0,-20,0};
+    
 	bool individual_joint_control(lnt_ik::lnt_ik::Request& req,lnt_ik::lnt_ik::Response& res);
 	
 	bool multiple_joint_control(lnt_ik::lnt_ik::Request& req,lnt_ik::lnt_ik::Response& res);
@@ -423,9 +426,10 @@ bool lnt_control::cartesian_space_position_constrained_control(lnt_ik::lnt_ik::R
 int main(int argc, char **argv)
 {
 	ros::init(argc, argv, "lnt_manipulator_server");
-        ros::NodeHandle n;
-
-	//Creating an object of the class
+    ros::NodeHandle n;
+    ros::NodeHandle home;
+    
+    //Creating an object of the class
 	lnt_control arm;
 	ros::ServiceServer service1 =  n.advertiseService("joint_space_control_individual", &lnt_control::individual_joint_control, &arm);
 	ros::ServiceServer service2 =  n.advertiseService("joint_space_control_multiple", &lnt_control::multiple_joint_control, &arm);
@@ -434,6 +438,20 @@ int main(int argc, char **argv)
 	ros::ServiceServer service5 =  n.advertiseService("cartesian_space_position_constraint", &lnt_control::cartesian_space_position_constrained_control, &arm);
 	ros::AsyncSpinner spinner(3);
   	spinner.start();
+  	
+  	//Sending the manipulator to home position
+  	//Create a client for multiple joint control
+    ros::ServiceClient lnt_client = n.serviceClient<lnt_ik::lnt_ik>("joint_space_control_multiple");
+	   
+	lnt_ik::lnt_ik srv;
+		
+	for(int i=0;i<6;i++)
+	 {
+		 srv.request.values[i] = arm.home_pos[i];
+	 }
+	 //call the service 
+     lnt_client.call(srv);
+	
 	ros::waitForShutdown();
 	return 0;
 }
