@@ -61,6 +61,12 @@ class lnt_control
 	
 	bool multiple_joint_control(lnt_ik::lnt_ik::Request& req,lnt_ik::lnt_ik::Response& res);
 	
+	bool cartesian_space_unconstrained_control(lnt_ik::lnt_ik::Request& req,lnt_ik::lnt_ik::Response& res);
+	
+	bool cartesian_space_orientation_constrained_control(lnt_ik::lnt_ik::Request& req,lnt_ik::lnt_ik::Response& res);
+	
+	bool cartesian_space_position_constrained_control(lnt_ik::lnt_ik::Request& req,lnt_ik::lnt_ik::Response& res);
+	
 	bool safety_check(int joint, double position);
 	
 	float Deg_to_Rad(float angle);
@@ -173,9 +179,245 @@ bool lnt_control::multiple_joint_control(lnt_ik::lnt_ik::Request& req,lnt_ik::ln
       ROS_INFO("Joint space goal(Multiple_joints): [%d]", res.result);
       return true;
 	
+}
+
+bool lnt_control::cartesian_space_unconstrained_control(lnt_ik::lnt_ik::Request& req,lnt_ik::lnt_ik::Response& res)
+{
+	//Create local variables for assigning the packet data
+	float x,y,z,alpha,beta,gama;
+	
+	//Assign the values from the client request data
+	x=req.values[0];
+	y=req.values[1];
+	z=req.values[2];
+	alpha=req.values[3];
+	beta=req.values[4];
+	gama=req.values[5];
+	
+	
+	//Creating a local variable for storing the start_pose
+	geometry_msgs::Pose start_pose;
+	
+	//Get the current pose
+	geometry_msgs::PoseStamped current_pose = move_group->getCurrentPose();
+	
+	//Copy the current pose to start pose evariable
+	start_pose.position.x = current_pose.pose.position.x;
+    start_pose.position.y = current_pose.pose.position.y;
+    start_pose.position.z = current_pose.pose.position.z; 
+    start_pose.orientation.x =  current_pose.pose.orientation.x;
+    start_pose.orientation.y = current_pose.pose.orientation.y;
+    start_pose.orientation.z = current_pose.pose.orientation.z;
+    start_pose.orientation.w = current_pose.pose.orientation.w;
+	
+	
+	//Create a quaternion to assign the start pose orientation 
+	tf::Quaternion q1(start_pose.orientation.x,start_pose.orientation.y,start_pose.orientation.z,start_pose.orientation.w);
+		  
+	//Convert the quaternion into Euler angles 		 
+	tf::Matrix3x3 m(q1);
+    double roll, pitch, yaw;
+    m.getRPY(roll, pitch, yaw);
+    
+    //Increment the angles from the packet data 
+    alpha = alpha +roll;
+    beta = beta+ pitch;
+    gama = gama +yaw;
+    
+    //Create a quaternion for assigning final orientation 
+	tf::Quaternion q2;
+	q2 = tf::createQuaternionFromRPY(alpha, beta, gama);
+	
+	//Apply the corresponding incrementation
+	geometry_msgs::Pose target_pose;
+	target_pose.position.x = start_pose.position.x+x;
+	target_pose.position.y = start_pose.position.y+y;
+	target_pose.position.z =   start_pose.position.z+z; 
+	target_pose.orientation.x =  q2.x();
+	target_pose.orientation.y = q2.y();
+	target_pose.orientation.z = q2.z();
+	target_pose.orientation.w =  q2.w();
+	      
+    //Create a plan object
+    moveit::planning_interface::MoveGroupInterface::Plan my_plan;
+    
+    //Set the target pose
+    move_group->setPoseTarget(target_pose);
+    move_group->setPlanningTime(5.0);
+    
+    //Execute the plan
+    move_group->move(); 
+     
+    return true;
 	
 }
 
+bool lnt_control::cartesian_space_orientation_constrained_control(lnt_ik::lnt_ik::Request& req,lnt_ik::lnt_ik::Response& res)
+{
+	
+	//Create local variables for assigning the packet data
+	float x,y,z,alpha,beta,gama;
+	
+	//Assign the values from the client request data
+	x=req.values[0];
+	y=req.values[1];
+	z=req.values[2];
+	alpha=req.values[3];
+	beta=req.values[4];
+	gama=req.values[5];
+	
+	
+	//Creating a local variable for storing the start_pose
+	geometry_msgs::Pose start_pose;
+	
+	//Get the current pose
+	geometry_msgs::PoseStamped current_pose = move_group->getCurrentPose();
+	
+	//Copy the current pose to start pose evariable
+	start_pose.position.x = current_pose.pose.position.x;
+    start_pose.position.y = current_pose.pose.position.y;
+    start_pose.position.z = current_pose.pose.position.z; 
+    start_pose.orientation.x =  current_pose.pose.orientation.x;
+    start_pose.orientation.y = current_pose.pose.orientation.y;
+    start_pose.orientation.z = current_pose.pose.orientation.z;
+    start_pose.orientation.w = current_pose.pose.orientation.w;
+    
+    //Planning with orientation Constraints
+    moveit_msgs::OrientationConstraint ocm;
+	ocm.link_name = "lnt_gripper_tool_frame";
+	ocm.header.frame_id = "base_link";
+	ocm.orientation.x =  start_pose.orientation.x;
+    ocm.orientation.y = start_pose.orientation.y;
+    ocm.orientation.z = start_pose.orientation.z;
+    ocm.orientation.w =  start_pose.orientation.w;
+	ocm.absolute_x_axis_tolerance = 0.1;
+	ocm.absolute_y_axis_tolerance = 0.1;
+	ocm.absolute_z_axis_tolerance = 0.1;
+	ocm.weight = 0.5;
+	
+	//Now, set it as the path constraint for the group.
+	moveit_msgs::Constraints test_constraints;
+	test_constraints.orientation_constraints.push_back(ocm);
+	move_group->setPathConstraints(test_constraints);
+	
+	//Assign the target pose
+	geometry_msgs::Pose target_pose;
+	target_pose.position.x =   start_pose.position.x+x; 
+	target_pose.position.y =   start_pose.position.y+y;
+	target_pose.position.z =   start_pose.position.z+z; 
+	target_pose.orientation.x =  start_pose.orientation.x;
+    target_pose.orientation.y = start_pose.orientation.y;
+    target_pose.orientation.z = start_pose.orientation.z;
+    target_pose.orientation.w = start_pose.orientation.w; 
+    
+    //Create a plan object
+    moveit::planning_interface::MoveGroupInterface::Plan my_plan;
+    
+    //Set the target
+    move_group->setPoseTarget(target_pose);
+	move_group->setPlanningTime(5.0);
+			
+	bool success = move_group->plan(my_plan);
+	
+	//Executing the plan
+	move_group->move(); 
+	  
+	// Clearing path constraint
+	move_group->clearPathConstraints();
+	
+	return true;
+		
+}
+
+bool lnt_control::cartesian_space_position_constrained_control(lnt_ik::lnt_ik::Request& req,lnt_ik::lnt_ik::Response& res)
+{
+	//Create local variables for assigning the packet data
+	float x,y,z,alpha,beta,gama;
+	
+	//Assign the values from the client request data
+	x=req.values[0];
+	y=req.values[1];
+	z=req.values[2];
+	alpha=req.values[3];
+	beta=req.values[4];
+	gama=req.values[5];
+	
+	
+	//Creating a local variable for storing the start_pose
+	geometry_msgs::Pose start_pose;
+	
+	//Get the current pose
+	geometry_msgs::PoseStamped current_pose = move_group->getCurrentPose();
+	
+	//Copy the current pose to start pose evariable
+	start_pose.position.x = current_pose.pose.position.x;
+    start_pose.position.y = current_pose.pose.position.y;
+    start_pose.position.z = current_pose.pose.position.z; 
+    start_pose.orientation.x =  current_pose.pose.orientation.x;
+    start_pose.orientation.y = current_pose.pose.orientation.y;
+    start_pose.orientation.z = current_pose.pose.orientation.z;
+    start_pose.orientation.w = current_pose.pose.orientation.w;
+	
+	
+	//Create a quaternion to assign the start pose orientation 
+	tf::Quaternion q1(start_pose.orientation.x,start_pose.orientation.y,start_pose.orientation.z,start_pose.orientation.w);
+		  
+	//Convert the quaternion into Euler angles 		 
+	tf::Matrix3x3 m(q1);
+    double roll, pitch, yaw;
+    m.getRPY(roll, pitch, yaw);
+    
+    //Increment the angles from the packet data 
+    alpha = alpha +roll;
+    beta = beta+ pitch;
+    gama = gama +yaw;
+    
+    //Create a quaternion for assigning final orientation 
+	tf::Quaternion q2;
+	q2 = tf::createQuaternionFromRPY(alpha, beta, gama);
+	
+	//Create  Position constraints
+    moveit_msgs::PositionConstraint pcm;
+	pcm.link_name = "lnt_gripper_tool_frame";
+	pcm.header.frame_id = "base_link";
+    pcm.target_point_offset.x = start_pose.position.x;
+	pcm.target_point_offset.y =  start_pose.position.y;
+	pcm.target_point_offset.z =  start_pose.position.z; 
+	pcm.weight = 0.9;
+	
+	//Set the constraint
+	moveit_msgs::Constraints pos_constraints;
+	pos_constraints.position_constraints.push_back(pcm);
+	move_group->setPathConstraints(pos_constraints);
+	
+	//set the target pose
+	geometry_msgs::Pose target_pose;
+	target_pose.position.x = start_pose.position.x;
+	target_pose.position.y = start_pose.position.y;
+	target_pose.position.z =   start_pose.position.z; 
+	target_pose.orientation.x =  q2.x();
+	target_pose.orientation.y = q2.y();
+	target_pose.orientation.z = q2.z();
+	target_pose.orientation.w = q2.w();
+	 
+    //Creating a plan object
+	moveit::planning_interface::MoveGroupInterface::Plan my_plan;
+	  
+	//Set the target pose  
+	move_group->setPoseTarget(target_pose);
+	move_group->setPlanningTime(5.0);
+	
+	//Planto the corresponding setpose target
+	bool success = move_group->plan(my_plan);
+	
+	//Execute the plan
+	move_group->move(); 
+	return true;
+	
+	
+	
+	
+}
 
 
 int main(int argc, char **argv)
@@ -187,6 +429,9 @@ int main(int argc, char **argv)
 	lnt_control arm;
 	ros::ServiceServer service1 =  n.advertiseService("joint_space_control_individual", &lnt_control::individual_joint_control, &arm);
 	ros::ServiceServer service2 =  n.advertiseService("joint_space_control_multiple", &lnt_control::multiple_joint_control, &arm);
+	ros::ServiceServer service3 =  n.advertiseService("cartesian_space_unconstrained", &lnt_control::cartesian_space_unconstrained_control, &arm);
+	ros::ServiceServer service4 =  n.advertiseService("cartesian_space_orientation_constraint", &lnt_control::cartesian_space_orientation_constrained_control, &arm);
+	ros::ServiceServer service5 =  n.advertiseService("cartesian_space_position_constraint", &lnt_control::cartesian_space_position_constrained_control, &arm);
 	ros::AsyncSpinner spinner(3);
   	spinner.start();
 	ros::waitForShutdown();
