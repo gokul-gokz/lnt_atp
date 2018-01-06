@@ -51,6 +51,9 @@ class lnt_control
 	
 	//Angle converted to radians and stored
 	float position;
+	
+	//Variable for storing the position of multiple joints
+	float multiple_joint_position[6];
   	
 
  public:
@@ -130,6 +133,45 @@ bool lnt_control::individual_joint_control(lnt_ik::lnt_ik::Request& req,lnt_ik::
 bool lnt_control::multiple_joint_control(lnt_ik::lnt_ik::Request& req,lnt_ik::lnt_ik::Response& res)
 {
 	
+   //Store the current state information(position/accleration/velocity) from the movegroup member function
+   current_state = move_group->getCurrentState();
+      
+   //Get the current position of the joints of the corresponding planning group
+   joint_model_group = current_state->getJointModelGroup(PLANNING_GROUP);
+  
+   //Copy the positions to another variable for modification.
+   current_state->copyJointGroupPositions(joint_model_group, joint_group_positions);
+  
+  //Modify the joint state accordingly
+  for(int i=0;i<6;i++)
+  {
+	//Degree to radians conversion
+	multiple_joint_position[i] = lnt_control::Deg_to_Rad(req.values[i]);
+	
+	//Checking the limits
+	if(safety_check(i,multiple_joint_position[i]))
+	 {	  
+        joint_group_positions[i] = multiple_joint_position[i];
+	   }
+	   else
+	   {
+		   std::cout<<"Joint"<<i<<" out of range"<<std::endl;
+       }
+     }  
+      
+      move_group->setJointValueTarget(joint_group_positions);
+      
+      //Create a plan object(local member) 
+      moveit::planning_interface::MoveGroupInterface::Plan my_plan;
+      bool success = move_group->plan(my_plan);
+
+      //Execute the plan
+      move_group->move(); 
+
+      res.result = success;
+
+      ROS_INFO("Joint space goal(Multiple_joints): [%d]", res.result);
+      return true;
 	
 	
 }
