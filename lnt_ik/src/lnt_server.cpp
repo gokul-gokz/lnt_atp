@@ -49,13 +49,7 @@ class lnt_control
 	double max[6] = {3.14,3.14,0,2.09,1.57,3.14};
 	double min[6] = {-3.14,0,-3.14,-2.09,-1.57,-3.14};
 	
-	//Angle converted to radians and stored
-	float position;
 	
-	//Variable for storing the position of multiple joints
-	float multiple_joint_position[6];
-  	
-
  public:
  
     double home_pos[6] = {0,45,-65,0,-20,0};
@@ -70,9 +64,15 @@ class lnt_control
 	
 	bool cartesian_space_position_constrained_control(lnt_ik::lnt_ik::Request& req,lnt_ik::lnt_ik::Response& res);
 	
+	bool cylindrical_space_control(lnt_ik::lnt_ik::Request& req,lnt_ik::lnt_ik::Response& res);
+	
 	bool safety_check(int joint, double position);
 	
 	float Deg_to_Rad(float angle);
+	
+	float Rad_to_Deg(float radian);
+	
+	float Range_conversion(float angle);
 	
 	lnt_control();
 }; 
@@ -96,15 +96,37 @@ bool lnt_control::safety_check(int joint, double position)
 float lnt_control::Deg_to_Rad(float angle)
 {
 	 angle = (angle *3.14)/180;
-	 ROS_INFO("Angle=%f",angle);
 	 return angle;
 }
 
+float lnt_control::Rad_to_Deg(float radian)
+{
+	radian = (radian*180)/3.14;
+	return radian;
+}
+
+float lnt_control::Range_conversion(float angle)
+{
+	if(angle>180)
+   {
+		  angle = -(360-angle);
+	  }
+   else if(angle<-180)
+   {
+		  angle = 360 + angle;
+	  }
+	return angle;
+}
 
 
 bool lnt_control::individual_joint_control(lnt_ik::lnt_ik::Request& req,lnt_ik::lnt_ik::Response& res)
 {
+	
+  //Variable for storing the angles in degrees converted to radians 
+  float position;
+	
   position = lnt_control::Deg_to_Rad(req.values[1]);
+  
   if(lnt_control::safety_check(req.values[0],position))
   {
 	 //Store the current state information(position/accleration/velocity) from the movegroup member function
@@ -141,6 +163,8 @@ bool lnt_control::individual_joint_control(lnt_ik::lnt_ik::Request& req,lnt_ik::
 
 bool lnt_control::multiple_joint_control(lnt_ik::lnt_ik::Request& req,lnt_ik::lnt_ik::Response& res)
 {
+	//Variable for storing the angles in degrees converted to radians for multiple joints 
+	float multiple_joint_position[6];
 	
    //Store the current state information(position/accleration/velocity) from the movegroup member function
    current_state = move_group->getCurrentState();
@@ -268,8 +292,7 @@ bool lnt_control::cartesian_space_orientation_constrained_control(lnt_ik::lnt_ik
 	alpha=req.values[3];
 	beta=req.values[4];
 	gama=req.values[5];
-	
-	
+		
 	//Creating a local variable for storing the start_pose
 	geometry_msgs::Pose start_pose;
 	
@@ -285,6 +308,7 @@ bool lnt_control::cartesian_space_orientation_constrained_control(lnt_ik::lnt_ik
     start_pose.orientation.z = current_pose.pose.orientation.z;
     start_pose.orientation.w = current_pose.pose.orientation.w;
     
+       
     //Planning with orientation Constraints
     moveit_msgs::OrientationConstraint ocm;
 	ocm.link_name = "lnt_gripper_tool_frame";
@@ -312,7 +336,7 @@ bool lnt_control::cartesian_space_orientation_constrained_control(lnt_ik::lnt_ik
     target_pose.orientation.y = start_pose.orientation.y;
     target_pose.orientation.z = start_pose.orientation.z;
     target_pose.orientation.w = start_pose.orientation.w; 
-    
+        
     //Create a plan object
     moveit::planning_interface::MoveGroupInterface::Plan my_plan;
     
@@ -416,11 +440,114 @@ bool lnt_control::cartesian_space_position_constrained_control(lnt_ik::lnt_ik::R
 	//Execute the plan
 	move_group->move(); 
 	return true;
-	
-	
-	
-	
 }
+
+bool lnt_control::cylindrical_space_control(lnt_ik::lnt_ik::Request& req,lnt_ik::lnt_ik::Response& res)
+{
+	//Create local variables for assigning the packet data
+	double r,theta,z;
+	
+	//Assign the values from the client request data
+	r=req.values[0];
+	theta=req.values[1];
+	z=req.values[2];
+	
+	//For theta only control mode
+	if( theta != 0 && r == 0 && z==0)
+	{
+    ROS_INFO("hello");
+   //Store the current state information(position/accleration/velocity) from the movegroup member function
+   current_state = move_group->getCurrentState();
+      
+   //Get the current position of the joints of the corresponding planning group
+   joint_model_group = current_state->getJointModelGroup(PLANNING_GROUP);
+  
+   //Copy the positions to another variable for modification.
+   current_state->copyJointGroupPositions(joint_model_group, joint_group_positions);
+      
+   //Adding the theta incrementation with current theta   
+   theta = theta + lnt_control::Rad_to_Deg(joint_group_positions[0]);
+   
+   //Convering within +180 to -180 range
+   theta = lnt_control::Range_conversion(theta);
+   
+   //Creating a client for individual joint control    
+   ros::NodeHandle n1;
+   ros::ServiceClient lnt_client_joint = n1.serviceClient<lnt_ik::lnt_ik>("joint_space_control_individual");
+   
+   //Assigning the theta to base joint
+   lnt_ik::lnt_ik srv;
+   srv.request.values[0]=0;
+   srv.request.values[1]=theta;
+   
+   //Calling the service 
+   lnt_client_joint.call(srv);
+   return true;
+   }
+   
+   else
+   {
+	 //Variable for storing the coordinates of end effector
+	 float x1,y1;
+	 
+	 //variable for storing the extension length of the end effector
+	 float R;
+	 
+	 //Variable for storing the initial theta of end effector
+	 float theta1;
+	 
+	//Get the current pose
+	geometry_msgs::PoseStamped current_pose = move_group->getCurrentPose();
+	
+	//Assign the current pose x,y coordinates to local variables
+	x1 = current_pose.pose.position.x;
+    y1 = current_pose.pose.position.y;
+         
+    //Finding the extension of the arm 
+    R = sqrt(pow(x1,2)+pow(y1,2));
+    
+    //Adding the initial extension of the arm with required additional movement from client data
+   	R = R+r;
+    
+    //Calculating the initial theta in radian
+    theta1 = atan(y1/x1);
+       
+    //Finding the final theta angle
+    theta = theta + lnt_control::Rad_to_Deg(theta1);
+    
+    //Converting within +180 to -180 range
+    theta = lnt_control::Range_conversion(theta);
+    
+    //Converting to radian
+    theta = lnt_control::Deg_to_Rad(theta);
+               
+    //Cylindrical to cartesian conversion
+    x1= R*cos(theta);
+    y1= R*sin(theta);
+    
+    //Finding the incrementation values in x and y direction
+    //Reason for subtracting the current position is that ,only incrementation values should be sent to the service but the x1,y1 we have is final target position
+    x1 = x1-current_pose.pose.position.x;;
+    y1 = y1-current_pose.pose.position.y;
+      
+    
+   //Creating a client for cartesian space orientation constrained control    
+   ros::NodeHandle n1;
+   ros::ServiceClient lnt_client_cartesian_orientation_control = n1.serviceClient<lnt_ik::lnt_ik>("cartesian_space_orientation_constraint");
+   
+   //Sending the incrementation values 
+   lnt_ik::lnt_ik srv;
+   srv.request.values[0]=x1;  
+   srv.request.values[1]=y1;
+   srv.request.values[2]=z;
+      
+   //Calling the service 
+   lnt_client_cartesian_orientation_control.call(srv);
+   return true;
+   }
+   
+   
+ }
 
 
 int main(int argc, char **argv)
@@ -436,6 +563,7 @@ int main(int argc, char **argv)
 	ros::ServiceServer service3 =  n.advertiseService("cartesian_space_unconstrained", &lnt_control::cartesian_space_unconstrained_control, &arm);
 	ros::ServiceServer service4 =  n.advertiseService("cartesian_space_orientation_constraint", &lnt_control::cartesian_space_orientation_constrained_control, &arm);
 	ros::ServiceServer service5 =  n.advertiseService("cartesian_space_position_constraint", &lnt_control::cartesian_space_position_constrained_control, &arm);
+	ros::ServiceServer service6 =  n.advertiseService("cylindrical_space_control", &lnt_control::cylindrical_space_control, &arm);
 	ros::AsyncSpinner spinner(3);
   	spinner.start();
   	
