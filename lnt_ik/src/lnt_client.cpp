@@ -3,146 +3,90 @@
 #include <lnt_packet/lnt_packet.h>
 #include <stdio.h>
 
-
-
-
-class lnt_data
+void packet_data_Callback(const lnt_packet::lnt_packet::ConstPtr& packet_data)
 {
- private:
-	//variable for storing safety limits for each joints
-	double max[6] = {3.14,3.14,0,2.09,1.57,3.14};
-double min[6] = {-3.14,0,-3.14,-2.09,-1.57,-3.14};
-
- public:
-	//Global variable for extracting the values from packet data
-	int packet=0;
-	float x,y,z,alpha,beta,gama;
-	float r,theta;
-        float values[6]; 
-         
-	int mode;
-	ros::NodeHandle n;
-	//variable for storing joint angles(radians) 
-	double position=50;
-	double multiple_position[6]; 
-	//variable for storing the joint number
-	int joint_num=0;
-
-	void packet_data_Callback(const lnt_packet::lnt_packet::ConstPtr& packet_data);
-
-        bool safety_check(int joint, double position);
-
-        bool calling_service();
-};
-
-
-//Safety limit check function
-bool lnt_data::safety_check(int joint, double position)
-{
-  if ((position>=min[joint]) && (position<=max[joint]))
-    return true;
-  else
-    return false;
-
-}
-
-void lnt_data::packet_data_Callback(const lnt_packet::lnt_packet::ConstPtr& packet_data)
-{
-   
-  //Assigning the packet data to corresponding global variables
-  ROS_INFO("packet=%d",packet);
+  //nodehandle for calling service
+  ros::NodeHandle n1;
+  
+  //local variables for storing packet data
+  int packet, mode;
+  float values[6];
+  
+  //Decoupling the packet data and storing in local variables for processing
   packet = packet_data->packet_code;
   mode = packet_data->eff_mode;
-   for(int i=0;i<6;i++)
-	 {
-		 values[i] = packet_data->values[i];
-	 }
-  if(packet == 1)
+  for(int i=0;i<6;i++)
   {
-	  x = packet_data->values[0];
-	  y = packet_data->values[1];
-	  z = packet_data->values[2];
-	  alpha = packet_data->values[3];
-	  beta = packet_data->values[4];
-	  gama = packet_data->values[5];
-  }
-  else if(packet == 2)
-  {
-	  r = packet_data->values[0];
-	  theta = packet_data->values[1];
-	  z = packet_data->values[2];
-  }
-  else if(packet == 5)
-  {
-	  
-	  joint_num = packet_data->values[0];
-	  position = packet_data->values[1];
-	  //Radians Conversion
-	  position = (position *3.14)/180;
-	  std::cout<<"position"<<position;
-	  
-          
-
-  }
-  else if(packet == 6)
-  {
-	 for(int i=0;i<6;i++)
-	 {
-		 multiple_position[i] = packet_data->values[i];
-	 }
- }
- 
-}
-
-bool lnt_data::calling_service()
-{
-	 
-	 //ROS_INFO("packet=%d",packet);
-     ros::NodeHandle n;
-     ROS_INFO("calling service");
-     
-	 if(lnt_data::safety_check(joint_num,position))
-	  {
-	   //creating client for the server joint_space_control_individual
-       ros::ServiceClient lnt_client = n.serviceClient<lnt_ik::lnt_ik>("joint_space_control_individual");
-	   
-	   lnt_ik::lnt_ik srv;
-	   for(int i=0;i<6;i++)
-	 {
-		 srv.request.values[i] = values[i];
-	 }
-		   
-           lnt_client.call(srv);
-           ros::Duration(5).sleep();
-           
+	 values[i] = packet_data->values[i];
    }
+   
+  //Copying the values into service request   
+  lnt_ik::lnt_ik srv;
+  for(int i=0;i<6;i++)
+  {
+		 srv.request.values[i] =values[i];
+  }	  
   
-}
-
+  //Checking the packet data and calling the corresponding service
+   if(packet == 5)
+    {
+	 ros::ServiceClient lnt_client1 = n1.serviceClient<lnt_ik::lnt_ik>("joint_space_control_individual");
+	 ROS_INFO("Calling joint_space_control_individual service");
+	 //call the service 
+     lnt_client1.call(srv);
+	}
+	
+	if(packet == 6)
+    {
+	 ros::ServiceClient lnt_client1 = n1.serviceClient<lnt_ik::lnt_ik>("joint_space_control_multiple");
+	 ROS_INFO("calling joint_space_control_multiple service");
+	 //call the service 
+     lnt_client1.call(srv);
+	}
+	
+	if(packet == 1 && mode == 0)
+    {
+	 ros::ServiceClient lnt_client1 = n1.serviceClient<lnt_ik::lnt_ik>("cartesian_space_unconstrained");
+	 ROS_INFO("calling cartesian_space_unconstrained service");
+	 //call the service 
+     lnt_client1.call(srv);
+	}
+	
+	if(packet == 1 && mode == 1)
+    {
+	 ros::ServiceClient lnt_client1 = n1.serviceClient<lnt_ik::lnt_ik>("cartesian_space_orientation_constraint");
+	 ROS_INFO("calling cartesian_space_orientation_constraint service");
+	 //call the service 
+     lnt_client1.call(srv);
+	}
+	
+	if(packet == 1 && mode == 2)
+    {
+	 ros::ServiceClient lnt_client1 = n1.serviceClient<lnt_ik::lnt_ik>("cartesian_space_position_constraint");
+	 ROS_INFO("calling cartesian_space_position_constraint service");
+	 //call the service 
+     lnt_client1.call(srv);
+	}
+	
+	if(packet == 2)
+    {
+	 ros::ServiceClient lnt_client1 = n1.serviceClient<lnt_ik::lnt_ik>("cylindrical_space_control");
+	 ROS_INFO("calling cylindrical_space_control service");
+	 //call the service 
+     lnt_client1.call(srv);
+	}
+		 
+	}
 
 int main(int argc, char **argv)
 {
   ros::init(argc, argv, "lnt_manipulator_client");
-  ros::NodeHandle node_handle;
-
-
+  ros::NodeHandle n;
   
-
- 
   //Subscriber for packet data
-  lnt_data l1;
-  ros::Subscriber sub1 = node_handle.subscribe("lnt_packet_data", 1000, &lnt_data::packet_data_Callback, &l1);
-
-  
-  //ROS_INFO("calling service");
-  l1.calling_service();
- 
-  //spinner thread for subscribers
-  ros::AsyncSpinner spinner(4);
-  spinner.start();
-  ros::waitForShutdown();
-  
-   
+  ros::Subscriber sub1 = n.subscribe("lnt_packet_data", 1000, packet_data_Callback);
+    
+  ros::spin(); 
   return 0;
 
  	

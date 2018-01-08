@@ -84,7 +84,7 @@ lnt_control::lnt_control()
 	  move_group = new moveit::planning_interface::MoveGroupInterface(PLANNING_GROUP);
  }
  
- //Safety limit check function
+//Safety limit check function
 bool lnt_control::safety_check(int joint, double position)
 {
   if ((position>=min[joint]) && (position<=max[joint]))
@@ -93,18 +93,21 @@ bool lnt_control::safety_check(int joint, double position)
     return false;
 }
 
+//Degree to radian conversion
 float lnt_control::Deg_to_Rad(float angle)
 {
 	 angle = (angle *3.14)/180;
 	 return angle;
 }
 
+//Radian to Degree conversion
 float lnt_control::Rad_to_Deg(float radian)
 {
 	radian = (radian*180)/3.14;
 	return radian;
 }
 
+//Converting into the range -180 to 180
 float lnt_control::Range_conversion(float angle)
 {
 	if(angle>180)
@@ -487,14 +490,14 @@ bool lnt_control::cylindrical_space_control(lnt_ik::lnt_ik::Request& req,lnt_ik:
    
    else
    {
-	 //Variable for storing the coordinates of end effector
-	 float x1,y1;
+	//Variable for storing the coordinates of end effector
+	float x1,y1;
 	 
-	 //variable for storing the extension length of the end effector
-	 float R;
+	//variable for storing the extension length of the end effector
+	float R;
 	 
-	 //Variable for storing the initial theta of end effector
-	 float theta1;
+	//Variable for storing the initial theta of end effector
+	float theta1;
 	 
 	//Get the current pose
 	geometry_msgs::PoseStamped current_pose = move_group->getCurrentPose();
