@@ -33,7 +33,12 @@ void packet_data_Callback(const lnt_packet::lnt_packet::ConstPtr& packet_data)
 	 ros::ServiceClient lnt_client1 = n1.serviceClient<lnt_ik::lnt_ik>("joint_space_control_individual");
 	 ROS_INFO("Calling joint_space_control_individual service");
 	 //call the service 
-     lnt_client1.call(srv);
+     if(lnt_client1.call(srv))
+     	 ROS_INFO("Client Request success");
+     	 else
+     	 ROS_INFO("Client Request Failed");
+     	 
+		 
 	}
 	
 	if(packet == 6)
@@ -41,7 +46,10 @@ void packet_data_Callback(const lnt_packet::lnt_packet::ConstPtr& packet_data)
 	 ros::ServiceClient lnt_client1 = n1.serviceClient<lnt_ik::lnt_ik>("joint_space_control_multiple");
 	 ROS_INFO("calling joint_space_control_multiple service");
 	 //call the service 
-     lnt_client1.call(srv);
+     if(lnt_client1.call(srv))
+     	 ROS_INFO("Client Request success");
+     	 else
+     	 ROS_INFO("Client Request Failed");
 	}
 	
 	if(packet == 1 && mode == 0)
@@ -49,7 +57,10 @@ void packet_data_Callback(const lnt_packet::lnt_packet::ConstPtr& packet_data)
 	 ros::ServiceClient lnt_client1 = n1.serviceClient<lnt_ik::lnt_ik>("cartesian_space_unconstrained");
 	 ROS_INFO("calling cartesian_space_unconstrained service");
 	 //call the service 
-     lnt_client1.call(srv);
+     if(lnt_client1.call(srv))
+     	 ROS_INFO("Client Request success");
+     	 else
+     	 ROS_INFO("Client Request Failed");
 	}
 	
 	if(packet == 1 && mode == 1)
@@ -57,7 +68,10 @@ void packet_data_Callback(const lnt_packet::lnt_packet::ConstPtr& packet_data)
 	 ros::ServiceClient lnt_client1 = n1.serviceClient<lnt_ik::lnt_ik>("cartesian_space_orientation_constraint");
 	 ROS_INFO("calling cartesian_space_orientation_constraint service");
 	 //call the service 
-     lnt_client1.call(srv);
+     if(lnt_client1.call(srv))
+     	 ROS_INFO("Client Request success");
+     	 else
+     	 ROS_INFO("Client Request Failed");
 	}
 	
 	if(packet == 1 && mode == 2)
@@ -65,7 +79,10 @@ void packet_data_Callback(const lnt_packet::lnt_packet::ConstPtr& packet_data)
 	 ros::ServiceClient lnt_client1 = n1.serviceClient<lnt_ik::lnt_ik>("cartesian_space_position_constraint");
 	 ROS_INFO("calling cartesian_space_position_constraint service");
 	 //call the service 
-     lnt_client1.call(srv);
+     if(lnt_client1.call(srv))
+     	 ROS_INFO("Client Request success");
+     	 else
+     	 ROS_INFO("Client Request Failed");
 	}
 	
 	if(packet == 2)
@@ -73,7 +90,10 @@ void packet_data_Callback(const lnt_packet::lnt_packet::ConstPtr& packet_data)
 	 ros::ServiceClient lnt_client1 = n1.serviceClient<lnt_ik::lnt_ik>("cylindrical_space_control");
 	 ROS_INFO("calling cylindrical_space_control service");
 	 //call the service 
-     lnt_client1.call(srv);
+     if(lnt_client1.call(srv))
+     	 ROS_INFO("Client Request success");
+     	 else
+     	 ROS_INFO("Client Request Failed");
 	}
 		 
 	}

@@ -125,6 +125,8 @@ float lnt_control::Range_conversion(float angle)
 bool lnt_control::individual_joint_control(lnt_ik::lnt_ik::Request& req,lnt_ik::lnt_ik::Response& res)
 {
 	
+  ROS_INFO("Entering Individual joint space control");
+  	
   //Variable for storing the angles in degrees converted to radians 
   float position;
 	
@@ -151,11 +153,17 @@ bool lnt_control::individual_joint_control(lnt_ik::lnt_ik::Request& req,lnt_ik::
 
       //Execute the plan
       move_group->move(); 
-
-      res.result = success;
-
-      ROS_INFO("Sending back response: [%d]", res.result);
-      return true;
+	  
+	  if (success)
+	  {
+	   ROS_INFO("Executed individual joint space goal successfully");
+       return true;
+       }
+       else
+       {
+	   ROS_INFO("Executing individual joint space goal failed");
+       return false;
+       }
   }
   else
   {
@@ -166,6 +174,9 @@ bool lnt_control::individual_joint_control(lnt_ik::lnt_ik::Request& req,lnt_ik::
 
 bool lnt_control::multiple_joint_control(lnt_ik::lnt_ik::Request& req,lnt_ik::lnt_ik::Response& res)
 {
+	
+	ROS_INFO("Entering Multiple joint space control");
+	
 	//Variable for storing the angles in degrees converted to radians for multiple joints 
 	float multiple_joint_position[6];
 	
@@ -191,7 +202,7 @@ bool lnt_control::multiple_joint_control(lnt_ik::lnt_ik::Request& req,lnt_ik::ln
 	   }
 	   else
 	   {
-		   std::cout<<"Joint"<<i<<" out of range"<<std::endl;
+		   ROS_INFO(" Joint%d out of range",i) ;
        }
      }  
       
@@ -204,17 +215,28 @@ bool lnt_control::multiple_joint_control(lnt_ik::lnt_ik::Request& req,lnt_ik::ln
       //Execute the plan
       move_group->move(); 
 
-      res.result = success;
-
-      ROS_INFO("Joint space goal(Multiple_joints): [%d]", res.result);
-      return true;
+      if (success)
+	  {
+	   ROS_INFO("Executed Multiple joint space goal successfully");
+       return true;
+       }
+       else
+       {
+	   ROS_INFO("Executing Multiple joint space goal failed");
+       return false;
+       }
 	
 }
 
 bool lnt_control::cartesian_space_unconstrained_control(lnt_ik::lnt_ik::Request& req,lnt_ik::lnt_ik::Response& res)
 {
+	ROS_INFO("Entering Cartesian space uncontrained control");
+	
 	//Create local variables for assigning the packet data
 	float x,y,z,alpha,beta,gama;
+	
+	//Variable for storing plan status
+	bool success;
 	
 	//Assign the values from the client request data
 	x=req.values[0];
@@ -275,18 +297,33 @@ bool lnt_control::cartesian_space_unconstrained_control(lnt_ik::lnt_ik::Request&
     move_group->setPoseTarget(target_pose);
     move_group->setPlanningTime(5.0);
     
+    //Finding the plan status		
+	success = move_group->plan(my_plan);
+	
     //Execute the plan
     move_group->move(); 
-     
-    return true;
-	
-}
+    
+    if (success)
+	{
+	   ROS_INFO("Executed cartesian space unconstrained goal successfully");
+       return true;
+       }
+    else
+    {
+	   ROS_INFO("Executing cartesian space unconstrained goal failed");
+       return false;
+       }
+  }
 
 bool lnt_control::cartesian_space_orientation_constrained_control(lnt_ik::lnt_ik::Request& req,lnt_ik::lnt_ik::Response& res)
 {
+	ROS_INFO("Entering Cartesian space orientation constraint control");
 	
 	//Create local variables for assigning the packet data
 	float x,y,z,alpha,beta,gama;
+	
+	//Variable for storing plan status
+	bool success;
 	
 	//Assign the values from the client request data
 	x=req.values[0];
@@ -346,8 +383,9 @@ bool lnt_control::cartesian_space_orientation_constrained_control(lnt_ik::lnt_ik
     //Set the target
     move_group->setPoseTarget(target_pose);
 	move_group->setPlanningTime(5.0);
-			
-	bool success = move_group->plan(my_plan);
+		
+	//Finding the plan status		
+    success = move_group->plan(my_plan);
 	
 	//Executing the plan
 	move_group->move(); 
@@ -355,14 +393,29 @@ bool lnt_control::cartesian_space_orientation_constrained_control(lnt_ik::lnt_ik
 	// Clearing path constraint
 	move_group->clearPathConstraints();
 	
-	return true;
+	if (success)
+	{
+	   ROS_INFO("Executed cartesian space orientation constrained goal successfully");
+       return true;
+       }
+    else
+    {
+	   ROS_INFO("Executing cartesian space orientation constrained goal failed");
+       return false;
+       }
 		
 }
 
 bool lnt_control::cartesian_space_position_constrained_control(lnt_ik::lnt_ik::Request& req,lnt_ik::lnt_ik::Response& res)
 {
+	
+	ROS_INFO("Entering Cartesian space orientation position control");
+	
 	//Create local variables for assigning the packet data
 	float x,y,z,alpha,beta,gama;
+	
+	//Variable for storing plan status
+	bool success;
 	
 	//Assign the values from the client request data
 	x=req.values[0];
@@ -437,18 +490,33 @@ bool lnt_control::cartesian_space_position_constrained_control(lnt_ik::lnt_ik::R
 	move_group->setPoseTarget(target_pose);
 	move_group->setPlanningTime(5.0);
 	
-	//Planto the corresponding setpose target
-	bool success = move_group->plan(my_plan);
+	//Plan to the corresponding setpose target
+	success = move_group->plan(my_plan);
 	
 	//Execute the plan
 	move_group->move(); 
-	return true;
+	
+	if (success)
+	{
+	   ROS_INFO("Executed cartesian space position constrained goal successfully");
+       return true;
+       }
+    else
+    {
+	   ROS_INFO("Executing cartesian space position constrained goal failed");
+       return false;
+       }
 }
 
 bool lnt_control::cylindrical_space_control(lnt_ik::lnt_ik::Request& req,lnt_ik::lnt_ik::Response& res)
 {
+	ROS_INFO("Entering cylindrical space control");
+	
 	//Create local variables for assigning the packet data
 	double r,theta,z;
+	
+	//Variable for storing plan status
+	bool success;
 	
 	//Assign the values from the client request data
 	r=req.values[0];
@@ -458,7 +526,7 @@ bool lnt_control::cylindrical_space_control(lnt_ik::lnt_ik::Request& req,lnt_ik:
 	//For theta only control mode
 	if( theta != 0 && r == 0 && z==0)
 	{
-    ROS_INFO("hello");
+    
    //Store the current state information(position/accleration/velocity) from the movegroup member function
    current_state = move_group->getCurrentState();
       
@@ -484,8 +552,16 @@ bool lnt_control::cylindrical_space_control(lnt_ik::lnt_ik::Request& req,lnt_ik:
    srv.request.values[1]=theta;
    
    //Calling the service 
-   lnt_client_joint.call(srv);
-   return true;
+   if(lnt_client_joint.call(srv))
+   {
+	ROS_INFO("Executed cylindrical space goal successfully");
+    return true;
+    }
+    else
+    {
+	  ROS_INFO("Executing cylindrical space goal failed");
+	  return false;
+	}
    }
    
    else
@@ -545,13 +621,18 @@ bool lnt_control::cylindrical_space_control(lnt_ik::lnt_ik::Request& req,lnt_ik:
    srv.request.values[2]=z;
       
    //Calling the service 
-   lnt_client_cartesian_orientation_control.call(srv);
-   return true;
+   if(lnt_client_cartesian_orientation_control.call(srv))
+   {
+	ROS_INFO("Executed cylindrical space goal successfully");
+    return true;
+    }
+    else
+    {
+	  ROS_INFO("Executing cylindrical space goal failed");
+	  return false;
+	}
    }
-   
-   
  }
-
 
 int main(int argc, char **argv)
 {
@@ -572,6 +653,9 @@ int main(int argc, char **argv)
   	
   	//Sending the manipulator to home position
   	//Create a client for multiple joint control
+  	
+  	ROS_INFO("Executing Home position command");
+  	
     ros::ServiceClient lnt_client = n.serviceClient<lnt_ik::lnt_ik>("joint_space_control_multiple");
 	   
 	lnt_ik::lnt_ik srv;
@@ -581,7 +665,11 @@ int main(int argc, char **argv)
 		 srv.request.values[i] = arm.home_pos[i];
 	 }
 	 //call the service 
-     lnt_client.call(srv);
+     if(lnt_client.call(srv))
+        ROS_INFO("Executing Home position command success");
+     else
+        ROS_INFO("Executing Home position command failed");
+   	 
 	
 	ros::waitForShutdown();
 	return 0;
