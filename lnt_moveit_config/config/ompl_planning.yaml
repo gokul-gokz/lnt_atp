@@ -145,7 +145,7 @@ manipulator:
     - LazyPRMstarkConfigDefault
     - SPARSkConfigDefault
     - SPARStwokConfigDefault
-eef:
+eff:
   planner_configs:
     - SBLkConfigDefault
     - ESTkConfigDefault

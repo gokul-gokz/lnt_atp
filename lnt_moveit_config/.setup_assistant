@@ -7,4 +7,4 @@ moveit_setup_assistant_config:
   CONFIG:
     author_name: gokul
     author_email: gokul@asimovrobotics.com
-    generated_timestamp: 1527488545
+    generated_timestamp: 1527490797

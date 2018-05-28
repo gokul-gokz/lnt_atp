@@ -2,7 +2,7 @@
 manipulator:
     
     baudrate: 2000000
-    devicename: "/dev/ttyUSB10"
+    devicename: "/dev/ttyUSB1"
     num_of_joints: 7
     # match joint names with motor ids using map or dictionary parameter type
     # note that joint names are to be defined as below only
