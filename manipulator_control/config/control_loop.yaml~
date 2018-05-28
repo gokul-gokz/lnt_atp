@@ -1,0 +1,4 @@
+#This file has the parameters required by the control loop
+control_loop:
+    loop_hz: 5
+    cycle_time_error_threshold: 20

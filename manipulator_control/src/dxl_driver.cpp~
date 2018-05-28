@@ -1,0 +1,318 @@
+#include "../include/manipulator_control/dxl_driver.h"
+
+
+
+	
+dxl_driver::dxl_driver(ros::NodeHandle &nh):nh_(nh){
+	if(nh_.getParam("/manipulator/baudrate",baudrate_)){}
+	else ROS_INFO("/manipulator/baudrate parameter could not be loaded ");
+	
+	if(nh_.getParam("/manipulator/num_of_joints",num_of_joints_)){}
+	else ROS_INFO("/manipulator/num_of_joints parameter could not be loaded ");
+
+	if(nh_.getParam("/manipulator/devicename",devicename_)){}
+	else ROS_INFO("/manipulator/devicename parameter could not be loaded ");
+
+	if(nh_.getParam("/manipulator/joint_ids",joint_ids_)){}
+	else ROS_INFO("/manipulator/joint_ids parameter could not be loaded ");
+
+	if(nh_.getParam("/manipulator/joint_nums",joint_nums_)){}
+	else ROS_INFO("/manipulator/joint_nums parameter could not be loaded ");
+	if(nh_.getParam("/manipulator/joint_speed",joint_speed_)){}
+	else ROS_INFO("/manipulator/joint_speed parameter could not be loaded ");
+
+	if(nh_.getParam("/manipulator/joint_pos_min",joint_pos_min_)){}
+	else ROS_INFO("/manipulator/joint_pos_min parameter could not be loaded ");
+
+	if(nh_.getParam("/manipulator/joint_pos_max",joint_pos_max_)){}
+	else ROS_INFO("/manipulator/joint_pos_max parameter could not be loaded ");
+
+	if(nh_.getParam("/manipulator/joint_pos_init",joint_pos_init_)){}
+	else ROS_INFO("/manipulator/joint_pos_init parameter could not be loaded "); 
+
+	dxl_addparam_result = false;
+	dxl_getdata_result = false;
+}
+
+dxl_driver::~dxl_driver(){
+	disableTorque(); 
+	closePort();
+
+}
+
+
+
+void dxl_driver::init(){
+	
+	portHandler = dynamixel::PortHandler::getPortHandler(devicename_.c_str());
+	packetHandler = dynamixel::PacketHandler::getPacketHandler(PROTOCOL_VERSION);
+	groupBulkWrite = new dynamixel::GroupBulkWrite(portHandler, packetHandler);
+	groupBulkRead = new dynamixel::GroupBulkRead(portHandler, packetHandler);
+	
+	openPort();
+	setBaudRate();
+	enableTorque(); 
+
+
+
+}
+
+int dxl_driver::getch(){
+	#if defined(__linux__) || defined(__APPLE__)
+		struct termios oldt, newt;
+		int ch;
+		tcgetattr(STDIN_FILENO, &oldt);
+		newt = oldt;
+		newt.c_lflag &= ~(ICANON | ECHO);
+		tcsetattr(STDIN_FILENO, TCSANOW, &newt);
+		ch = getchar();
+		tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
+		return ch;
+	#elif defined(_WIN32) || defined(_WIN64)
+		return _getch();
+	#endif
+}
+
+int dxl_driver::kbhit(void){
+	#if defined(__linux__) || defined(__APPLE__)
+		struct termios oldt, newt;
+		int ch;
+		int oldf;
+
+		tcgetattr(STDIN_FILENO, &oldt);
+		newt = oldt;
+		newt.c_lflag &= ~(ICANON | ECHO);
+		tcsetattr(STDIN_FILENO, TCSANOW, &newt);
+		oldf = fcntl(STDIN_FILENO, F_GETFL, 0);
+		fcntl(STDIN_FILENO, F_SETFL, oldf | O_NONBLOCK);
+
+		ch = getchar();
+
+		tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
+		fcntl(STDIN_FILENO, F_SETFL, oldf);
+
+		if (ch != EOF)
+		{
+		ungetc(ch, stdin);
+		return 1;
+		}
+
+	 	return 0;
+	#elif defined(_WIN32) || defined(_WIN64)
+  		return _kbhit();
+	#endif
+
+}
+
+void dxl_driver::printmap(std::map<std::string,int> &m){
+	for(std::map<std::string, int>::const_iterator it = m.begin();	it != m.end(); ++it)
+	{
+	std::cout << it->first << " " << it->second<<"\n";
+	}
+}
+
+void dxl_driver::printvector(std::vector<double> &vec){
+	for (int i = 0; i < vec.size(); ++i){
+		printf("%f ",vec[i]);
+	}
+}
+
+
+void dxl_driver::printvariables(){
+	ROS_INFO("Baudrate is %d",baudrate_);
+	ROS_INFO("Number of joints is %d",num_of_joints_);
+	ROS_INFO("Device name %s",devicename_.c_str());
+	ROS_INFO("Joint IDs");printmap(joint_ids_);
+	ROS_INFO("Joint numbers");printmap(joint_nums_);
+	ROS_INFO("Joint speeds");printmap(joint_speed_);
+	ROS_INFO("Joint position min limit");printmap(joint_pos_min_);
+	ROS_INFO("Joint position max limit");printmap(joint_pos_max_);
+	ROS_INFO("Joint position init values");printmap(joint_pos_init_);
+}
+
+
+
+void dxl_driver::read(std::vector<double> &joint_position,std::vector<double> &joint_velocity,std::vector<double> &joint_effort){
+	for(std::map<std::string, int>::const_iterator it = joint_nums_.begin();it != joint_nums_.end(); ++it)
+	{
+		//std::cout << it->first << " " << it->second<<"\n";
+		dxl_addparam_result = groupBulkRead->addParam(joint_ids_[it->first], ADDR_PRO_PRESENT_POSITION, LEN_PRO_PRESENT_POSITION);
+		  if (dxl_addparam_result != true)
+		  {
+		    fprintf(stderr, "[ID:%03d] grouBulkRead addparam failed", joint_ids_[it->first]);
+		    
+		  }
+	}
+	dxl_comm_result = groupBulkRead->txRxPacket();
+	if (dxl_comm_result != COMM_SUCCESS) printf("%s\n", packetHandler->getTxRxResult(dxl_comm_result));
+
+	for(std::map<std::string, int>::const_iterator it = joint_nums_.begin();it != joint_nums_.end(); ++it)
+	{
+		//std::cout << it->first << " " << it->second<<"\n";
+		dxl_getdata_result = groupBulkRead->isAvailable(joint_ids_[it->first], ADDR_PRO_PRESENT_POSITION, LEN_PRO_PRESENT_POSITION);
+		if (dxl_getdata_result != true)
+		{
+		fprintf(stderr, "[ID:%03d] groupBulkRead getdata failed",joint_ids_[it->first]);
+		
+		}
+		index=(it->second)-1;
+		if (it->second<4){//These are Pro H54 series motor
+		joint_position[index] = groupBulkRead->getData(joint_ids_[it->first], ADDR_PRO_PRESENT_POSITION, LEN_PRO_PRESENT_POSITION)*3.14/250961.5;}
+		
+		else{//These are Pro H42 series motor
+		joint_position[index] = groupBulkRead->getData(joint_ids_[it->first], ADDR_PRO_PRESENT_POSITION, LEN_PRO_PRESENT_POSITION)*3.14/151875;}
+
+
+	}
+	
+
+
+
+}
+
+void dxl_driver::write(std::vector<double> &joint_position_command,std::vector<double> &joint_velocity_command,std::vector<double> &joint_effort_command){
+	for(std::map<std::string, int>::const_iterator it = joint_nums_.begin();it != joint_nums_.end(); ++it)
+	{
+		//std::cout << it->first << " " << it->second<<"\n";
+		index=(it->second)-1;//index in the vector is (joint_num-1)
+		if(it->second<4){
+			dxl_goal_position=joint_position_command[index]*(250961.5/3.14);}
+		else{
+			dxl_goal_position=joint_position_command[index]*(151875/3.14);}
+
+		param_goal_position[0] = DXL_LOBYTE(DXL_LOWORD(dxl_goal_position));
+		param_goal_position[1] = DXL_HIBYTE(DXL_LOWORD(dxl_goal_position));
+		param_goal_position[2] = DXL_LOBYTE(DXL_HIWORD(dxl_goal_position));
+		param_goal_position[3] = DXL_HIBYTE(DXL_HIWORD(dxl_goal_position));
+		
+		 dxl_addparam_result = groupBulkWrite->addParam(joint_ids_[it->first], ADDR_PRO_GOAL_POSITION, LEN_PRO_GOAL_POSITION, param_goal_position);
+		    if (dxl_addparam_result != true){
+		      fprintf(stderr, "[ID:%03d] groupBulkWrite addparam failed", joint_ids_[it->first]);
+		      }
+	}
+	dxl_comm_result = groupBulkWrite->txPacket();
+	if (dxl_comm_result != COMM_SUCCESS) printf("%s\n", packetHandler->getTxRxResult(dxl_comm_result));
+	// Clear bulkwrite parameter storage
+	groupBulkWrite->clearParam();
+
+}	
+
+
+
+
+void dxl_driver::openPort(){
+	if (portHandler->openPort()){
+		ROS_INFO("Succeeded to open the port!\n");
+		
+
+		}
+	else{
+		ROS_INFO("Failed to open the port!\n");
+		ROS_INFO("Press any key to terminate...\n");
+		getch();
+		
+		}
+}
+
+void dxl_driver::setBaudRate(){
+	if (portHandler->setBaudRate(baudrate_)){
+		ROS_INFO("Succeeded to change the baudrate!\n");
+		
+
+		}
+	else{
+		ROS_INFO("Failed to change the baudrate!\n");
+		ROS_INFO("Press any key to terminate...\n");
+		getch();
+		
+		}
+}
+
+void dxl_driver::enableTorque(){
+		
+	// Enable Dynamixel Torque
+	
+	for(std::map<std::string, int>::const_iterator it = joint_ids_.begin();it != joint_ids_.end(); ++it){
+		if(it->first=="gripper"){
+	
+			dxl_comm_result = packetHandler->write1ByteTxRx(portHandler, it->second, ADDR_MX_TORQUE_ENABLE, TORQUE_ENABLE, &dxl_error);
+			if (dxl_comm_result != COMM_SUCCESS){
+				printf("%s\n", packetHandler->getTxRxResult(dxl_comm_result));
+				}
+
+			else if (dxl_error != 0){
+				printf("%s\n", packetHandler->getRxPacketError(dxl_error));
+				}
+
+			else{
+				ROS_INFO("Dynamixel ID : %d / %s has been successfully connected \n",it->second,it->first.c_str());
+			
+				}
+			}
+		else{
+			
+			dxl_comm_result = packetHandler->write1ByteTxRx(portHandler, it->second, ADDR_PRO_TORQUE_ENABLE, TORQUE_ENABLE, &dxl_error);
+			if (dxl_comm_result != COMM_SUCCESS){
+				printf("%s\n", packetHandler->getTxRxResult(dxl_comm_result));
+				}
+
+			else if (dxl_error != 0){
+				printf("%s\n", packetHandler->getRxPacketError(dxl_error));
+				}
+
+			else{
+				ROS_INFO("Dynamixel ID : %d / %s has been successfully connected \n",it->second,it->first.c_str());
+			}
+			
+		}
+	}
+
+
+}
+
+void dxl_driver::disableTorque(){
+		
+	// Disable Dynamixel Torque
+	
+	for(std::map<std::string, int>::const_iterator it = joint_ids_.begin();it != joint_ids_.end(); ++it){
+		if(it->first=="gripper"){
+	
+			dxl_comm_result = packetHandler->write1ByteTxRx(portHandler, it->second, ADDR_MX_TORQUE_ENABLE, TORQUE_DISABLE, &dxl_error);
+			if (dxl_comm_result != COMM_SUCCESS){
+				printf("%s\n", packetHandler->getTxRxResult(dxl_comm_result));
+				}
+
+			else if (dxl_error != 0){
+				printf("%s\n", packetHandler->getRxPacketError(dxl_error));
+				}
+
+			else{		
+			ROS_INFO("Dynamixel ID : %d / %s has been dis-connected \n",it->second,it->first.c_str());
+			}
+			}
+		else{
+			dxl_comm_result = packetHandler->write1ByteTxRx(portHandler, it->second, ADDR_PRO_TORQUE_ENABLE, TORQUE_DISABLE, &dxl_error);
+			if (dxl_comm_result != COMM_SUCCESS){
+				printf("%s\n", packetHandler->getTxRxResult(dxl_comm_result));
+				}
+
+			else if (dxl_error != 0){
+				printf("%s\n", packetHandler->getRxPacketError(dxl_error));
+				}
+
+			else{		
+			ROS_INFO("Dynamixel ID : %d / %s has been dis-connected \n",it->second,it->first.c_str());
+			}
+			
+		}
+	}
+
+
+}
+
+
+void dxl_driver::closePort(){
+	portHandler->closePort();
+}
+
+

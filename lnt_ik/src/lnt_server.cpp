@@ -409,7 +409,7 @@ bool lnt_control::cartesian_space_orientation_constrained_control(lnt_ik::lnt_ik
 bool lnt_control::cartesian_space_position_constrained_control(lnt_ik::lnt_ik::Request& req,lnt_ik::lnt_ik::Response& res)
 {
 	
-	ROS_INFO("Entering Cartesian space orientation position control");
+	ROS_INFO("Entering Cartesian space position control");
 	
 	//Create local variables for assigning the packet data
 	float x,y,z,alpha,beta,gama;

@@ -1,0 +1,22 @@
+#This file describes all the parameters required by dxl_driver package
+manipulator:
+    
+    baudrate: 2000000
+    devicename: "/dev/ttyUSB10"
+    num_of_joints: 7
+    # match joint names with motor ids using map or dictionary parameter type
+    # note that joint names are to be defined as below only
+    joint_ids: {'joint1': 1,'joint2': 4,'joint3': 5,'joint4': 8,'joint5': 7,'joint6': 17,'right_grip_joint': 2,'left_grip_joint': 2}
+    # match joint names with joint numbers
+    joint_nums: {'joint1': 1,'joint2': 2,'joint3': 3,'joint4': 4,'joint5': 5,'joint6': 6,'right_grip_joint': 7,'left_grip_joint': 8}
+
+    
+    joint_speed: {'base': 7,'shoulder': 6,'elbow': 5,'roll1': 4,'pitch': 3,'roll2': 2,'gripper': 1}
+    joint_pos_min: {'base': 0,'shoulder': 0,'elbow': 0,'roll1': 0,'pitch': 0,'roll2': 0,'gripper': 0}
+    joint_pos_max: {'base': 4095,'shoulder': 4095,'elbow': 4095,'roll1': 4095,'pitch': 4095,'roll2': 4095,'gripper': 4095}
+    joint_pos_init: {'base': 200,'shoulder': 200,'elbow': 200,'roll1': 200,'pitch': 200,'roll2': 200,'gripper': 200}
+
+    
+    
+    
+    

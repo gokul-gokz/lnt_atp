@@ -1,0 +1,558 @@
+<robot
+  name="lnt_urdf_description">
+  <link
+    name="base_link">
+    <inertial>
+      <origin
+        xyz="-0.0406419965644875 -0.0393560204265091 0.148760063652187"
+        rpy="0 0 0" />
+      <mass
+        value="0.854155845147981" />
+      <inertia
+        ixx="0.00710852611283595"
+        ixy="-3.91661557279289E-07"
+        ixz="7.71172614028277E-05"
+        iyy="0.0072097253379719"
+        iyz="8.32333709729229E-05"
+        izz="0.00103326398530037" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://lnt_urdf_description/meshes/base_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.752941176470588 0.752941176470588 0.752941176470588 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://lnt_urdf_description/meshes/base_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+
+  <link
+    name="link_1">
+    <inertial>
+      <origin
+        xyz="-4.40057691612344E-05 0.00293563013815038 -0.00141724219797013"
+        rpy="0 0 0" />
+      <mass
+        value="0.377267733129056" />
+      <inertia
+        ixx="0.000641277937131853"
+        ixy="-1.14785245516926E-07"
+        ixz="-5.7933074601794E-07"
+        iyy="0.00019199703768203"
+        iyz="-6.07837956690096E-06"
+        izz="0.000630748841506656" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://lnt_urdf_description/meshes/link_1.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.752941176470588 0.752941176470588 0.752941176470588 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://lnt_urdf_description/meshes/link_1.STL" />
+      </geometry>
+    </collision>
+  </link>
+
+  <joint
+    name="joint1"
+    type="revolute">
+    <origin
+      xyz="-0.04013 -0.04013 0.335"
+      rpy="-6.163E-33 -3.3635E-16 5.5511E-17" />
+    <parent
+      link="base_link" />
+    <child
+      link="link_1" />
+    <axis
+      xyz="0 0 1" />
+    <limit
+      lower="-3.14"
+      upper="3.14"
+      effort="0"
+      velocity="0" />
+  </joint>
+
+  <link
+    name="link_2">
+    <inertial>
+      <origin
+        xyz="-0.311175688435593 -0.000520999176908732 -0.00364100635167752"
+        rpy="0 0 0" />
+      <mass
+        value="0.555909264188642" />
+      <inertia
+        ixx="0.000771033191957727"
+        ixy="2.35747155362987E-05"
+        ixz="3.15533598988728E-05"
+        iyy="0.0144365415387292"
+        iyz="1.35189943906771E-06"
+        izz="0.0139570184140524" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://lnt_urdf_description/meshes/link_2.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.752941176470588 0.752941176470588 0.752941176470588 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://lnt_urdf_description/meshes/link_2.STL" />
+      </geometry>
+    </collision>
+  </link>
+
+  <joint
+    name="joint2"
+    type="revolute">
+    <origin
+      xyz="0 0 0"
+      rpy="-1.5708 -8.4486E-17 4.6491E-16" />
+    <parent
+      link="link_1" />
+    <child
+      link="link_2" />
+    <axis
+      xyz="0 0 1" />
+    <limit
+      lower="0"
+      upper="3.14"
+      effort="0"
+      velocity="0" />
+  </joint>
+
+  <link
+    name="link_3">
+    <inertial>
+      <origin
+        xyz="0.169474131534033 -0.0500512457629593 0.00170509113305036"
+        rpy="0 0 0" />
+      <mass
+        value="0.292706779888183" />
+      <inertia
+        ixx="0.000332555030455513"
+        ixy="0.000161514105326486"
+        ixz="8.37410047316718E-05"
+        iyy="0.00280358448042595"
+        iyz="-2.4432046400321E-05"
+        izz="0.00267450897995475" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://lnt_urdf_description/meshes/link_3.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.752941176470588 0.752941176470588 0.752941176470588 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://lnt_urdf_description/meshes/link_3.STL" />
+      </geometry>
+    </collision>
+  </link>
+
+  <joint
+    name="joint3"
+    type="revolute">
+    <origin
+      xyz="-0.43132 -0.0012844 0"
+      rpy="2.9334E-15 -4.3854E-15 -1.3983E-29" />
+    <parent
+      link="link_2" />
+    <child
+      link="link_3" />
+    <axis
+      xyz="0 0 1" />
+    <limit
+      lower="-3.14"
+      upper="0"
+      effort="0"
+      velocity="0" />
+  </joint>
+
+  <link
+    name="link_4">
+    <inertial>
+      <origin
+        xyz="-7.39902665313208E-05 0.00465167357643104 0.0389281580850403"
+        rpy="0 0 0" />
+      <mass
+        value="0.159649260916991" />
+      <inertia
+        ixx="0.000133249401429536"
+        ixy="-4.75917767768121E-08"
+        ixz="-3.0892159510496E-07"
+        iyy="5.32131244910627E-05"
+        iyz="-1.80050439489612E-06"
+        izz="0.000127949156669396" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://lnt_urdf_description/meshes/link_4.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.752941176470588 0.752941176470588 0.752941176470588 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://lnt_urdf_description/meshes/link_4.STL" />
+      </geometry>
+    </collision>
+  </link>
+
+  <joint
+    name="joint4"
+    type="revolute">
+    <origin
+      xyz="0.2911 -0.05351 0"
+      rpy="-1.5708 -3.8008E-15 -1.5708" />
+    <parent
+      link="link_3" />
+    <child
+      link="link_4" />
+    <axis
+      xyz="0 0 -1" />
+    <limit
+      lower="-2.09"
+      upper="2.09"
+      effort="0"
+      velocity="0" />
+  </joint>
+
+  <link
+    name="link_5">
+    <inertial>
+      <origin
+        xyz="0.00833031698142361 0.0701915459000639 0.00103030017205778"
+        rpy="0 0 0" />
+      <mass
+        value="0.215222730814981" />
+      <inertia
+        ixx="0.000280999987740405"
+        ixy="-4.6954389784785E-07"
+        ixz="1.94581019886863E-06"
+        iyy="0.000198557406368771"
+        iyz="1.75539877526659E-05"
+        izz="0.000307113755598204" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://lnt_urdf_description/meshes/link_5.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.752941176470588 0.752941176470588 0.752941176470588 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://lnt_urdf_description/meshes/link_5.STL" />
+      </geometry>
+    </collision>
+  </link>
+
+  <joint
+    name="joint5"
+    type="revolute">
+    <origin
+      xyz="0 0 0.041"
+      rpy="1.5708 4.3758E-16 -3.0787E-17" />
+    <parent
+      link="link_4" />
+    <child
+      link="link_5" />
+    <axis
+      xyz="0 0 -1" />
+    <limit
+      lower="-1.57"
+      upper="1.57"
+      effort="0"
+      velocity="0" />
+  </joint>
+
+  <link
+    name="link_6">
+    <inertial>
+      <origin
+        xyz="-8.59162970415772E-05 0.00626177313801288 0.0405572933052834"
+        rpy="0 0 0" />
+      <mass
+        value="0.110597086440397" />
+      <inertia
+        ixx="9.9894118619703E-05"
+        ixy="-7.52616828492589E-08"
+        ixz="-1.3380969124737E-07"
+        iyy="4.95262329924643E-05"
+        iyz="6.80967667485631E-06"
+        izz="9.70117123728459E-05" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://lnt_urdf_description/meshes/link_6.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.752941176470588 0.752941176470588 0.752941176470588 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://lnt_urdf_description/meshes/link_6.STL" />
+      </geometry>
+    </collision>
+  </link>
+
+  <joint
+    name="joint6"
+    type="revolute">
+    <origin
+      xyz="0 0.122 0"
+      rpy="-1.5708 3.0787E-17 2.7105E-16" />
+    <parent
+      link="link_5" />
+    <child
+      link="link_6" />
+    <axis
+      xyz="0 0 -1" />
+    <limit
+      lower="-3.14"
+      upper="3.14"
+      effort="0"
+      velocity="0" />
+  </joint>
+
+  <!--This is a fake joint to interpret as tool frame-->
+
+   <joint name="lnt_gripper_tool_frame_joint" type="fixed">
+    <parent link="link_6"/>
+    <child link="lnt_gripper_tool_frame" />
+    <origin xyz="0 0 0.14" rpy="0 0 0"/>
+  </joint>
+
+ 
+  <link name="lnt_gripper_tool_frame">
+
+    <!-- This is the coordinate system of the end effector (this is the position
+         used in IK); there is no actual arm part attached to this link -->
+
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0.001"/>
+      <geometry>
+        <box size="0.005 0.005 0.005"/>
+      </geometry>
+      <material name="grey" />
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="0 0 0.01"/>
+      <geometry>
+        <box size="0.01 0.01 0.01"/>
+      </geometry>
+      <material name="grey" />
+    </collision>
+    <inertial>
+      <mass value="0.0012" />
+      <origin xyz="0 0 0"/>
+      <inertia ixx="2e-8" ixy="0.0" ixz="0.0"
+        iyy="2e-8" iyz="0.0"
+        izz="2e-8" />
+    </inertial>
+ </link>  
+
+  <link
+    name="left_grip_link">
+    <inertial>
+      <origin
+        xyz="0.0446303908491625 -0.00183644059394805 0.00663270264117533"
+        rpy="0 0 0" />
+      <mass
+        value="0.0185428410821073" />
+      <inertia
+        ixx="6.26215169801845E-06"
+        ixy="1.15375995015168E-06"
+        ixz="-1.51856873495303E-06"
+        iyy="1.24340447116661E-05"
+        iyz="6.71376492758006E-07"
+        izz="1.52881224340952E-05" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://lnt_urdf_description/meshes/left_grip_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.752941176470588 0.752941176470588 0.752941176470588 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://lnt_urdf_description/meshes/left_grip_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+
+  <joint
+    name="left_grip_joint"
+    type="prismatic">
+    <origin
+      xyz="-0.00038798 -0.0193 0.1357"
+      rpy="1.5708 1.5708 0" />
+    <parent
+      link="link_6" />
+    <child
+      link="left_grip_link" />
+    <axis
+      xyz="0 0 1" />
+    <limit
+      lower="0"
+      upper="0"
+      effort="0"
+      velocity="0" />
+  </joint>
+  <link
+    name="right_grip_link">
+    <inertial>
+      <origin
+        xyz="0.00183644059394839 0.0446303908491771 0.00663270264104472"
+        rpy="0 0 0" />
+      <mass
+        value="0.0185428410821077" />
+      <inertia
+        ixx="1.24340447117043E-05"
+        ixy="-1.15375995016135E-06"
+        ixz="-6.71376492688537E-07"
+        iyy="6.26215242543214E-06"
+        iyz="-1.51856815875648E-06"
+        izz="1.52881217067198E-05" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://lnt_urdf_description/meshes/right_grip_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.752941176470588 0.752941176470588 0.752941176470588 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://lnt_urdf_description/meshes/right_grip_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="right_grip_joint"
+    type="prismatic">
+    <origin
+      xyz="0.00038798 0.0423 0.1358"
+      rpy="-1.5708 -1.108E-15 -3.1416" />
+    <parent
+      link="link_6" />
+    <child
+      link="right_grip_link" />
+    <axis
+      xyz="0 0 -1" />
+    <limit
+      lower="0"
+      upper="0"
+      effort="0"
+      velocity="0" />
+  </joint>
+</robot>

@@ -1,0 +1,28 @@
+#include "../include/manipulator_control/dxl_driver.h"
+#include <string>
+#include "ros/ros.h"
+
+int main(int argc, char **argv)
+{
+
+ros::init(argc, argv, "dxl_driver");
+ros::NodeHandle nh;
+//std::string devicename_;
+std::vector<double> joint_position,joint_velocity,joint_effort;
+
+//nh.getParam("/manipulator/devicename",devicename_);
+//printf("%s",devicename_.c_str());
+joint_position.push_back(5);joint_position.push_back(4);joint_position.push_back(3);
+
+
+dxl_driver d(nh);
+d.init();
+d.printvariables();
+d.read(joint_position,joint_velocity,joint_effort);
+/*
+while(ros::ok()){
+
+
+}
+*/
+}
