@@ -59,7 +59,7 @@ void dxl_driver::init(){
 	openPort();
 	setBaudRate();
 	enableTorque();
-	sleep(5000000);
+	//sleep(5000000);
 	add_read_param();
     
 
@@ -147,11 +147,15 @@ void dxl_driver::read(std::vector<double> &joint_position,std::vector<double> &j
 	while(!groupBulkReadSucess){
 	
 	dxl_comm_result = groupBulkRead->txRxPacket();
-	if (dxl_comm_result != COMM_SUCCESS); //printf("groupBulkRead : %s\n", packetHandler->getTxRxResult(dxl_comm_result));
+	if (dxl_comm_result != COMM_SUCCESS) {
+		
+		printf("groupBulkRead : %s\n", packetHandler->getTxRxResult(dxl_comm_result));
+		}
 	
 	else{ 
 		groupBulkReadSucess=true;
 		printf("\n groupBulkRead is success \n");}
+		//sleep(50000);
 	}
 	
 	for(std::map<std::string, int>::const_iterator it = joint_nums_.begin();it != joint_nums_.end(); ++it)
@@ -206,23 +210,35 @@ void dxl_driver::write(std::vector<double> &joint_position_command,std::vector<d
 	{
 		//std::cout << it->first << " " << it->second<<"\n";
 		index=(it->second)-1;//index in the vector is (joint_num-1)
+		printf("%G \n",joint_position_command[index]);
 		
 		if(it->second<4){//These are Pro H54 series motor
-			dxl_goal_position=static_cast<int>(joint_position_command[index])*(double)(250961.5/3.14);
+			dxl_goal_position=(joint_position_command[index])*(double)(250961.5/3.14);
+			//printf("%i \t", dxl_goal_position);static_cast<int>
 			//dxl_goal_position=joint_position_command[index]*(250961.5/3.14);
 			}
 		else if (it->second<7){//These are Pro H42 series motor
-			dxl_goal_position=static_cast<int>(joint_position_command[index])*(double)(151875/3.14);
+			dxl_goal_position=(joint_position_command[index])*(double)(151875/3.14);
+			//printf("%i \t", dxl_goal_position);static_cast<int>
 			//dxl_goal_position=joint_position_command[index]*(151875/3.14);
 			}
 		else{//These are MX64 2.0 series motors
-			dxl_goal_position=static_cast<int>(joint_position_command[index])*(double)(4095/3.14);
+			dxl_goal_position=(joint_position_command[index])*(double)(4095/3.14);
+			//printf("%i \t", dxl_goal_position);static_cast<int>
 			}
 
 		param_goal_position[0] = DXL_LOBYTE(DXL_LOWORD(dxl_goal_position));
 		param_goal_position[1] = DXL_HIBYTE(DXL_LOWORD(dxl_goal_position));
 		param_goal_position[2] = DXL_LOBYTE(DXL_HIWORD(dxl_goal_position));
 		param_goal_position[3] = DXL_HIBYTE(DXL_HIWORD(dxl_goal_position));
+		
+		//printing some debug info
+		printf("%i \t",dxl_goal_position);
+		for(int i=0;i<4;i++){
+		printf("%u ",param_goal_position[i]);}
+		printf("\n");
+		
+		
 		
 		if(it->first=="right_grip_joint"){//do nothing
 			}
@@ -245,9 +261,15 @@ void dxl_driver::write(std::vector<double> &joint_position_command,std::vector<d
 		 
 	}
 	dxl_comm_result = groupBulkWrite->txPacket();
-	ROS_INFO("joint_position_command");
-	printvector(joint_position_command);
-	if (dxl_comm_result != COMM_SUCCESS) printf("%s\n", packetHandler->getTxRxResult(dxl_comm_result));
+	if (dxl_comm_result != COMM_SUCCESS){
+		printf("%s\n", packetHandler->getTxRxResult(dxl_comm_result));}
+	
+	if (dxl_comm_result == COMM_SUCCESS){
+		printf("groupBulkWrite is success ! ");
+		}
+	
+	//ROS_INFO("joint_position_command");
+	//printvector(joint_position_command);
 	// Clear bulkwrite parameter storage
 	groupBulkWrite->clearParam();
 
@@ -286,8 +308,9 @@ void dxl_driver::setBaudRate(){
 
 
 void dxl_driver::add_read_param(){
-	for(std::map<std::string, int>::const_iterator it = joint_nums_.begin();it != joint_nums_.end(); ++it)
+	for(std::map<std::string, int>::const_iterator it = joint_ids_.begin();it != joint_ids_.end(); ++it)
 	{
+		//printf("Adding param for %i \n",it->second);
 		//std::cout << it->first << " " << it->second<<"\n";
 		dxl_addparam_result=false;
 		if(it->first=="right_grip_joint"){//do nothing
@@ -296,21 +319,22 @@ void dxl_driver::add_read_param(){
 		else if(it->first=="left_grip_joint"){//These are MX 64 2.0 series motors   || it->first=="left_grip_joint"
 			
 			 while(dxl_addparam_result==false){
-		dxl_addparam_result = groupBulkRead->addParam(joint_ids_[it->first], ADDR_MX_PRESENT_POSITION, LEN_MX_PRESENT_POSITION);
+		dxl_addparam_result = groupBulkRead->addParam(it->second, ADDR_MX_PRESENT_POSITION, LEN_MX_PRESENT_POSITION);
 		  if (dxl_addparam_result != true){
-		    fprintf(stderr, "[ID:%03d] : %s grouBulkRead addparam failed \n", joint_ids_[it->first],it->first.c_str());}
+		    fprintf(stderr, "[ID:%03d] : %s grouBulkRead addparam failed \n", it->second,it->first.c_str());}
 		   }
 	   }
 	   
 	   else{//These are PRO series motors
 		  while(dxl_addparam_result==false){
-		dxl_addparam_result = groupBulkRead->addParam(joint_ids_[it->first], ADDR_PRO_PRESENT_POSITION, LEN_PRO_PRESENT_POSITION);
+		dxl_addparam_result = groupBulkRead->addParam(it->second, ADDR_PRO_PRESENT_POSITION, LEN_PRO_PRESENT_POSITION);
 		  if (dxl_addparam_result != true){
-		    fprintf(stderr, "[ID:%03d] grouBulkRead addparam failed %s \n", joint_ids_[it->first],it->first.c_str());}
+		    fprintf(stderr, "[ID:%03d] grouBulkRead addparam failed %s \n",it->second,it->first.c_str());}
 		   }
 		   }
 	}
-	
+	//printf("Addparam successful \n");
+	//sleep(2000000);
 }
 
 
@@ -333,12 +357,12 @@ void dxl_driver::enableTorque(){
 					
 						dxl_comm_result = packetHandler->write1ByteTxRx(portHandler, it->second, ADDR_MX_TORQUE_ENABLE , TORQUE_ENABLE, &dxl_error);
 						if (dxl_comm_result != COMM_SUCCESS){
-							printf("MX motor %s : %s\n", it->first.c_str(),packetHandler->getTxRxResult(dxl_comm_result));
+							printf("Torque enable %s : %s\n", it->first.c_str(),packetHandler->getTxRxResult(dxl_comm_result));
 							result=false;
 							}
 
 						else if (dxl_error != 0){
-							printf("MX motor %s : %s \n", it->first.c_str(),packetHandler->getRxPacketError(dxl_error));
+							printf("Torque enable %s : %s \n", it->first.c_str(),packetHandler->getRxPacketError(dxl_error));
 							result=false;
 							}
 
@@ -356,12 +380,12 @@ void dxl_driver::enableTorque(){
 			
 				dxl_comm_result = packetHandler->write1ByteTxRx(portHandler, it->second, ADDR_PRO_TORQUE_ENABLE, TORQUE_ENABLE, &dxl_error);
 				if (dxl_comm_result != COMM_SUCCESS){
-					printf("Pro motor %s : %s \n", it->first.c_str(),packetHandler->getTxRxResult(dxl_comm_result));
+					printf("Torque enable %s : %s \n", it->first.c_str(),packetHandler->getTxRxResult(dxl_comm_result));
 					result=false;
 					}
 
 				else if (dxl_error != 0){
-					printf("Pro motor %s : %s \n",it->first.c_str(), packetHandler->getRxPacketError(dxl_error));
+					printf("Torque enable %s : %s \n",it->first.c_str(), packetHandler->getRxPacketError(dxl_error));
 					result=false;
 					}
 

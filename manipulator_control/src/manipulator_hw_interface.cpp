@@ -108,7 +108,7 @@ ROS_INFO("num_joints %d",num_joints_);
 }
 
 void ManipulatorHWInterface::read(ros::Duration &elapsed_time){
-	//ROS_INFO("ManipulatorHWInterface::read called");
+	ROS_INFO("ManipulatorHWInterface::read called");
 	
 	//count+=100;
 	//joint_position_[0]=count;	
@@ -122,7 +122,7 @@ void ManipulatorHWInterface::read(ros::Duration &elapsed_time){
 }
 
 void ManipulatorHWInterface::write(ros::Duration &elapsed_time){
-	//ROS_INFO("joint_position_command is");
+	ROS_INFO("ManipulatorHWInterface::read called");
 	//ROS_INFO("Size of joint_position_command_ %d",joint_position_command_.size());
 	//for(int i=0;i<joint_position_command_.size();i++)
 		//ROS_INFO("%G ",joint_position_command_[i]);

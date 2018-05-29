@@ -26,6 +26,10 @@
 #include <cmath>
 #include <tf/transform_datatypes.h>
 
+#include <time.h>
+
+
+
 class lnt_control
 {
  private:
@@ -49,7 +53,7 @@ class lnt_control
 	double max[6] = {3.14,3.14,0,2.09,1.57,3.14};
 	double min[6] = {-3.14,0,-3.14,-2.09,-1.57,-3.14};
 	
-	
+		
  public:
  
     double home_pos[6] = {0,45,-65,0,-20,0};
@@ -182,7 +186,9 @@ bool lnt_control::multiple_joint_control(lnt_ik::lnt_ik::Request& req,lnt_ik::ln
 	
    //Store the current state information(position/accleration/velocity) from the movegroup member function
    current_state = move_group->getCurrentState();
-      
+   
+   sleep(5);
+   
    //Get the current position of the joints of the corresponding planning group
    joint_model_group = current_state->getJointModelGroup(PLANNING_GROUP);
   

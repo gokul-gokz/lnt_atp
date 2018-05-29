@@ -170,11 +170,11 @@ file(GLOB SOURCES "src/*.cpp")
 add_dependencies(dynamixel_sdk ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(dynamixel_sdk ${catkin_LIBRARIES})
 
-#add_executable(dxl src/dxl_driver_main.cpp ${SOURCES})
-#target_link_libraries(dxl ${Boost_LIBRARIES} ${catkin_LIBRARIES})
+add_executable(dxl src/dxl_main.cpp ${SOURCES})
+target_link_libraries(dxl ${Boost_LIBRARIES} ${catkin_LIBRARIES})
 
-add_executable(man_hw src/man_hw_main.cpp src/control_loop.cpp src/manipulator_hw_interface.cpp ${SOURCES})
-target_link_libraries(man_hw ${Boost_LIBRARIES} ${catkin_LIBRARIES})
+#add_executable(man_hw src/man_hw_main.cpp src/control_loop.cpp src/manipulator_hw_interface.cpp ${SOURCES})
+#target_link_libraries(man_hw ${Boost_LIBRARIES} ${catkin_LIBRARIES})
 #############
 ## Install ##
 #############
